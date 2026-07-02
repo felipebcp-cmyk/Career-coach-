@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate in Finance Business Partnering — 7-Week Course</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">🧭</span>
+      <div>
+        <div class="brand-name">Finance Business Partnering</div>
+        <div class="brand-sub">7-week certificate course · from scorekeeper to trusted advisor</div>
+      </div>
+    </div>
+    <div class="progress-pill" id="progressPill"></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-view="dashboard">Dashboard</button>
+    <button class="tab" data-view="m1">Module 1</button>
+    <button class="tab" data-view="m2">Module 2</button>
+    <button class="tab" data-view="m3">Module 3</button>
+    <button class="tab" data-view="capstone">Capstone</button>
+    <button class="tab" data-view="certificate">Certificate</button>
+  </nav>
+</header>
+
+<main id="main" class="main"></main>
+
+<footer class="footer">
+  Your progress is saved in this browser only.
+  <button class="linklike" id="exportBtn">Export backup</button>
+  · <button class="linklike danger" id="resetBtn">Reset progress</button>
+</footer>
+
+<!-- Onboarding -->
+<div class="modal-backdrop hidden" id="onboarding">
+  <div class="modal">
+    <h2>Welcome to the course</h2>
+    <p>Over the next seven weeks you'll build the mindset, communication skills and
+    influence of a <strong>finance business partner</strong> — someone the business
+    trusts to turn numbers into decisions. Three micro-course modules, three applied
+    workshops, a capstone scenario, then a 20-question final assessment (50% to pass,
+    three attempts) — and a certificate at the end.</p>
+    <label class="field">
+      <span>Your name (it goes on the certificate)</span>
+      <input type="text" id="obName" placeholder="Your full name" maxlength="60">
+    </label>
+    <button class="btn primary" id="obStart">Start Week 1</button>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
