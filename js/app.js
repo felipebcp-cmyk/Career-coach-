@@ -21,7 +21,13 @@ function defaultState() {
     identity: "",
     stories: [],                   // {id, title, situation, task, action, result}
     apps: [],                      // {id, company, role, status, date, next}
-    breakStory: ""
+    breakStory: "",
+    reminders: {
+      checkin: { on: true,  time: "20:30" },
+      skill:   { on: false, time: "09:00" },
+      retro:   { on: true,  time: "18:00" }   // Sundays
+    },
+    lastFired: {}                  // reminderId -> date it last notified
   };
 }
 
@@ -101,7 +107,7 @@ function coachNote(personaId, text) {
 /* ---------------- router ---------------- */
 const VIEWS = { today: viewToday, program: viewProgram, reflect: viewReflect,
   confidence: viewConfidence, compass: viewCompass, skills: viewSkills,
-  launch: viewLaunch, council: viewCouncil, retro: viewRetro };
+  launch: viewLaunch, council: viewCouncil, retro: viewRetro, reminders: viewReminders };
 
 function navigate(view) {
   if (!VIEWS[view]) view = "today";
@@ -132,6 +138,15 @@ function viewToday(root) {
 
   const [pid, note] = dailyPick(PHASE_NOTES[phase.id]);
   root.append(coachNote(pid, note));
+
+  // gentle nudge if the check-in time has passed and today's isn't done
+  const r = state.reminders.checkin;
+  if (r.on && !state.checkins[todayKey()] && nowHM() >= r.time) {
+    root.append(el("div", { class: "nudge mt" }, "🔔",
+      el("span", {}, "Your evening check-in is still open — two minutes before bed."),
+      el("span", { class: "spacer" }),
+      el("button", { class: "btn small", onclick: () => navigate("reminders") }, "Reminder settings")));
+  }
 
   const grid = el("div", { class: "grid two mt" });
   grid.append(checkinCard(), habitsCard(phase));
@@ -907,6 +922,131 @@ function viewCouncil(root) {
   });
 }
 
+/* ================= REMINDERS ================= */
+const REMINDER_DEFS = [
+  { id: "checkin", name: "Evening check-in", sub: "Daily · energy, mood, three wins", freq: "daily",
+    body: "Two minutes: how was your energy today? Log it and your three wins." },
+  { id: "skill", name: "Skill session", sub: "Daily · protect the streak", freq: "daily",
+    body: "Skill session time — 45 focused minutes, then you're free." },
+  { id: "retro", name: "Sunday retro", sub: "Weekly · fifteen minutes to close the week", freq: "weekly-sunday",
+    body: "Sunday retro: the week in numbers, four questions, next week's focus." }
+];
+
+function nowHM() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+
+function viewReminders(root) {
+  root.append(
+    el("h1", { class: "section-title" }, "Reminders"),
+    el("p", { class: "section-sub" }, "Two channels: browser notifications fire at these times while Rekindle is open in a tab, and the calendar file gives you guaranteed reminders everywhere else — phone included.")
+  );
+  root.append(coachNote("priya", "A reminder is an anchor, not a nag. Pick times attached to things you already do — check-in after dinner, skill session after morning coffee — and let the calendar carry the memory."));
+
+  const card = el("div", { class: "card mt" }, el("h2", {}, "Schedule"));
+  REMINDER_DEFS.forEach(def => {
+    const r = state.reminders[def.id];
+    const sw = el("button", { class: "switch" + (r.on ? " on" : ""), role: "switch",
+      "aria-checked": String(r.on), "aria-label": def.name,
+      onclick: () => { r.on = !r.on; save(); render(); } });
+    const time = el("input", { type: "time", value: r.time });
+    time.addEventListener("change", () => { r.time = time.value || r.time; save(); });
+    card.append(el("div", { class: "reminder-row" },
+      sw,
+      el("div", { class: "r-name" }, el("b", {}, def.name), el("div", { class: "r-sub" }, def.sub)),
+      time));
+  });
+  root.append(card);
+
+  // browser notifications
+  const notifCard = el("div", { class: "card mt" },
+    el("h2", {}, "Browser notifications"),
+    el("p", { class: "sub" }, "Fire at the times above while the app is open in any tab. Keep Rekindle pinned and this covers most days."));
+  const perm = ("Notification" in window) ? Notification.permission : "unsupported";
+  if (perm === "granted") {
+    notifCard.append(el("p", { class: "notif-status ok" }, "✓ Notifications are enabled in this browser."));
+  } else if (perm === "denied") {
+    notifCard.append(el("p", { class: "notif-status" }, "Notifications are blocked for this site — re-enable them in your browser's site settings, or rely on the calendar file below."));
+  } else if (perm === "unsupported") {
+    notifCard.append(el("p", { class: "notif-status" }, "This browser doesn't support notifications — use the calendar file below."));
+  } else {
+    notifCard.append(el("button", { class: "btn primary", onclick: async () => {
+      await Notification.requestPermission();
+      render();
+    } }, "Enable browser notifications"));
+  }
+  root.append(notifCard);
+
+  // calendar file
+  const icsCard = el("div", { class: "card mt" },
+    el("h2", {}, "Calendar reminders (recommended)"),
+    el("p", { class: "sub" }, "Downloads a calendar file with your enabled reminders as recurring events with alerts. Open it and your calendar app (Google, Apple, Outlook) takes over — it reminds you even when Rekindle is closed."));
+  icsCard.append(el("button", { class: "btn primary", onclick: downloadIcs }, "⤓ Download calendar file (.ics)"));
+  root.append(icsCard);
+}
+
+function downloadIcs() {
+  const active = REMINDER_DEFS.filter(d => state.reminders[d.id].on);
+  if (!active.length) return toast("Turn on at least one reminder first");
+  const pad = n => String(n).padStart(2, "0");
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Rekindle//Burnout Recovery Coach//EN", "CALSCALE:GREGORIAN"];
+  active.forEach(def => {
+    const r = state.reminders[def.id];
+    const [hh, mm] = r.time.split(":").map(Number);
+    // first occurrence: today if the time is still ahead, else the next valid day
+    const start = new Date();
+    start.setHours(hh, mm, 0, 0);
+    if (def.freq === "weekly-sunday") {
+      while (start.getDay() !== 0 || start.getTime() < Date.now()) start.setTime(start.getTime() + DAY);
+    } else if (start.getTime() < Date.now()) {
+      start.setTime(start.getTime() + DAY);
+    }
+    // floating local time on purpose: "20:30" should mean 20:30 wherever the user is
+    const dt = `${start.getFullYear()}${pad(start.getMonth() + 1)}${pad(start.getDate())}T${pad(hh)}${pad(mm)}00`;
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:rekindle-${def.id}@local`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${dt}`,
+      "DURATION:PT15M",
+      def.freq === "weekly-sunday" ? "RRULE:FREQ=WEEKLY;BYDAY=SU" : "RRULE:FREQ=DAILY",
+      `SUMMARY:${def.name} — Rekindle`,
+      `DESCRIPTION:${def.body}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${def.name}`, "TRIGGER:PT0S", "END:VALARM",
+      "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "rekindle-reminders.ics";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Calendar file downloaded — open it to add the reminders.");
+}
+
+/* fires while the app is open; the calendar file covers everything else */
+function checkReminders() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const today = todayKey(), hm = nowHM();
+  REMINDER_DEFS.forEach(def => {
+    const r = state.reminders[def.id];
+    if (!r.on || state.lastFired[def.id] === today || hm < r.time) return;
+    if (def.freq === "weekly-sunday" && new Date().getDay() !== 0) return;
+    // skip if the thing is already done today
+    if (def.id === "checkin" && state.checkins[today]) return;
+    if (def.id === "skill" && state.skills.some(s => s.logs.some(l => l.date === today))) return;
+    const rt = (state.weekly[weekKey()] || {}).retro;
+    if (def.id === "retro" && rt && Object.values(rt).some(v => v && v.trim())) return;
+    state.lastFired[def.id] = today;
+    save();
+    const n = new Notification("Rekindle 🔥", { body: def.body });
+    n.onclick = () => { window.focus(); navigate(def.id === "retro" ? "retro" : "today"); };
+  });
+}
+
 /* ================= onboarding, export, reset ================= */
 function initOnboarding() {
   if (state.startDate) return;
@@ -966,7 +1106,10 @@ function initFooter() {
 /* ---------------- boot ---------------- */
 document.querySelectorAll(".tab").forEach(t =>
   t.addEventListener("click", () => navigate(t.dataset.view)));
+$("#bellBtn").addEventListener("click", () => navigate("reminders"));
 window.addEventListener("hashchange", render);
 initFooter();
 initOnboarding();
 render();
+checkReminders();
+setInterval(checkReminders, 30000);

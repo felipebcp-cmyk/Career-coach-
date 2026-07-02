@@ -58,6 +58,11 @@ discipline tooling gated to the right phase.
   (average energy, habits kept, wins, skill hours), four reflection questions, and a
   printable review sheet. Next week's focus carries forward automatically.
 - **Council** — the five advisors, their philosophies, and rotating advice.
+- **Reminders** (🔔 in the top bar) — evening check-in, skill session, and Sunday retro
+  reminders on two channels: browser notifications while the app is open in a tab, and
+  a downloadable `.ics` calendar file with recurring alarmed events so your phone or
+  calendar reminds you even when the app is closed. A gentle in-app nudge appears on
+  the Today tab when the check-in time has passed.
 
 ## Tech
 
