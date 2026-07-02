@@ -51,10 +51,16 @@ discipline tooling gated to the right phase.
   concrete options.
 - **Skills** — pick skill tracks (data, storytelling, product/strategy, modern finance,
   AI literacy…), set weekly hour targets, log sessions.
+- **Launch** — the transition toolkit: rehearse your break story, build STAR interview
+  stories from the evidence bank, and track applications with a sustainable-pace rule
+  (two focused hours a day, then close the laptop).
+- **Weekly retro** — a Sunday ritual reached from the Today tab: the week in numbers
+  (average energy, habits kept, wins, skill hours), four reflection questions, and a
+  printable review sheet. Next week's focus carries forward automatically.
 - **Council** — the five advisors, their philosophies, and rotating advice.
 
 ## Tech
 
 Vanilla HTML/CSS/JS, no build step, no dependencies. State lives under one
-`localStorage` key (`rekindle.v1`). The energy chart is hand-rolled SVG following
+`localStorage` key (`rekindle.v1`), with JSON export/import for backups. The energy chart is hand-rolled SVG following
 accessible data-viz specs (single series, direct labels, hover tooltips).

@@ -236,6 +236,27 @@ const DISTORTIONS = [
   { name: "Should statements", example: "\"I should be over this by now.\"" }
 ];
 
+/* ---------- launch toolkit ---------- */
+const APP_STATUSES = ["Saved", "Applied", "Interviewing", "Offer", "Closed"];
+
+const STAR_FIELDS = [
+  { id: "situation", label: "Situation", hint: "Set the scene in one or two sentences. Where, when, what was at stake?" },
+  { id: "task", label: "Task", hint: "What were YOU responsible for? Not the team — you." },
+  { id: "action", label: "Action", hint: "The 2–3 concrete things you did. Verbs, decisions, trade-offs." },
+  { id: "result", label: "Result", hint: "The outcome, with a number if you have one. Then one sentence on what it says about you." }
+];
+
+const STORY_PROMPTS = [
+  "A time you performed under real pressure",
+  "A time you caught an error nobody else saw",
+  "A time you influenced someone senior to change course",
+  "A time you delivered with incomplete information",
+  "A time you failed, and what you changed after",
+  "A time you led without authority"
+];
+
+const BREAK_STORY_GUIDE = "Say it in three beats, with a straight back: (1) “I took a deliberate break after an intense run in finance.” (2) “I used it to rebuild and retrain — [your skill bets].” (3) “I'm now targeting [direction] because [one values-based reason].” No apology, no over-explaining. Rehearse it out loud until it's boring to you.";
+
 /* ---------- daily coach notes, keyed by phase ---------- */
 const PHASE_NOTES = {
   recover: [

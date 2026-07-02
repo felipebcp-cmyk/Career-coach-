@@ -239,6 +239,49 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .council-card .philosophy { font-size: 14px; color: var(--ink-2); font-style: italic; margin: 6px 0; }
 .council-card .tip { font-size: 14px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
 
+/* ---------- launch: applications & stories ---------- */
+.status-badge {
+  font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+}
+.status-saved        { background: var(--surface-2); color: var(--ink-2); }
+.status-applied      { background: #e3ecfa; color: #1c5cab; }
+.status-interviewing { background: #fdf1d7; color: #8a5a00; }
+.status-offer        { background: #e2f3e6; color: var(--good); }
+.status-closed       { background: var(--surface-2); color: var(--ink-3); }
+.app-row {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 10px 4px; border-bottom: 1px solid var(--surface-2);
+}
+.app-row .co { font-weight: 600; }
+.app-row .role { color: var(--ink-2); font-size: 13.5px; }
+.app-row select { width: auto; padding: 4px 8px; font-size: 13px; }
+.story-item { padding: 10px 4px; border-bottom: 1px solid var(--surface-2); }
+.story-item .story-title { font-weight: 600; }
+.story-item .story-body { font-size: 13.5px; color: var(--ink-2); margin-top: 3px; }
+.story-item .star-tag { font-weight: 700; color: var(--accent); }
+.pace-note {
+  background: var(--accent-soft); border-radius: 10px; padding: 10px 14px;
+  font-size: 13.5px; color: var(--ink-2); margin-top: 10px;
+}
+
+/* ---------- weekly retro ---------- */
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+@media (max-width: 700px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-tile {
+  background: var(--surface-2); border-radius: 12px; padding: 12px 14px; text-align: center;
+}
+.stat-tile .val { font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1.15; }
+.stat-tile .lbl { font-size: 12.5px; color: var(--ink-2); }
+
+/* ---------- print: the weekly review sheet ---------- */
+@media print {
+  .topbar, .footer, .toast, .no-print { display: none !important; }
+  body { background: #fff; }
+  .main { padding: 0; max-width: none; }
+  .card { box-shadow: none; break-inside: avoid; }
+  textarea { border: none; padding: 4px 0; }
+}
+
 /* ---------- modal / toast / footer ---------- */
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(38,36,31,.45);

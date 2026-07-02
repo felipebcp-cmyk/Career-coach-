@@ -27,6 +27,7 @@
     <button class="tab" data-view="confidence">Confidence</button>
     <button class="tab" data-view="compass">Compass</button>
     <button class="tab" data-view="skills">Skills</button>
+    <button class="tab" data-view="launch">Launch</button>
     <button class="tab" data-view="council">Council</button>
   </nav>
 </header>
@@ -35,7 +36,9 @@
 
 <footer class="footer">
   Your data never leaves this browser. <button class="linklike" id="exportBtn">Export backup</button>
+  · <button class="linklike" id="importBtn">Import backup</button>
   · <button class="linklike danger" id="resetBtn">Reset everything</button>
+  <input type="file" id="importFile" accept="application/json,.json" class="hidden">
 </footer>
 
 <!-- Onboarding -->
