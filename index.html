@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rekindle — Burnout Recovery &amp; Career Coach</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">🔥</span>
+      <div>
+        <div class="brand-name">Rekindle</div>
+        <div class="brand-sub">from burnout to your next chapter</div>
+      </div>
+    </div>
+    <div class="phase-pill" id="phasePill"></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-view="today">Today</button>
+    <button class="tab" data-view="program">Program</button>
+    <button class="tab" data-view="reflect">Reflect</button>
+    <button class="tab" data-view="confidence">Confidence</button>
+    <button class="tab" data-view="compass">Compass</button>
+    <button class="tab" data-view="skills">Skills</button>
+    <button class="tab" data-view="council">Council</button>
+  </nav>
+</header>
+
+<main id="main" class="main"></main>
+
+<footer class="footer">
+  Your data never leaves this browser. <button class="linklike" id="exportBtn">Export backup</button>
+  · <button class="linklike danger" id="resetBtn">Reset everything</button>
+</footer>
+
+<!-- Onboarding -->
+<div class="modal-backdrop hidden" id="onboarding">
+  <div class="modal">
+    <h2>Welcome. You made a brave call.</h2>
+    <p>Quitting a job that was burning you out isn't a failure — it's the first act of
+    someone taking their life back. This coach will walk you through twelve weeks:
+    <strong>Recover → Reflect → Rebuild → Relaunch</strong>. Rest comes first. The job
+    hunt comes when you're ready.</p>
+    <label class="field">
+      <span>What should we call you?</span>
+      <input type="text" id="obName" placeholder="Your first name" maxlength="30">
+    </label>
+    <label class="field">
+      <span>When did you leave the job (roughly)?</span>
+      <input type="date" id="obDate">
+    </label>
+    <button class="btn primary" id="obStart">Start my recovery</button>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
