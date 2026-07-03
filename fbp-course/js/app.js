@@ -50,9 +50,6 @@
   function quizPassed(key) {
     return (state.quizScores[key] || 0) >= passMarkFor(key);
   }
-  function finalAttemptsLeft() {
-    return COURSE.capstone.assessment.maxAttempts - (state.quizAttempts["capstone"] || 0);
-  }
   function sampleFinalQuestions() {
     const pool = COURSE.modules.flatMap(m => m.quiz.questions)
       .concat(COURSE.capstone.scenarioQuestions);
@@ -174,9 +171,9 @@
       <section class="hero card">
         <h1>Welcome back, ${name}.</h1>
         <p>This course takes you from producing reports to shaping decisions:
-        <strong>essentials → influential partnering → strategic partnering</strong>,
+        <strong>foundations → analysis to influence → the advisor's seat</strong>,
         then a capstone scenario and final assessment. Finish it all and you earn
-        your certificate — this course's version of the digital badge.</p>
+        your certificate of completion.</p>
         <div class="meter big"><div class="meter-fill" style="width:${pct}%"></div></div>
         <div class="muted small">${pct}% of the course complete${state.completedAt ? " · certified " + new Date(state.completedAt).toLocaleDateString() : ""}</div>
       </section>
@@ -189,14 +186,13 @@
           <p class="muted">One applied scenario — a real partnering decision from problem
           statement to one-page recommendation — then the final assessment:
           ${COURSE.capstone.assessment.count} questions from all modules,
-          ${Math.round(COURSE.capstone.assessment.passMark * 100)}% to pass,
-          ${COURSE.capstone.assessment.maxAttempts} attempts.</p>
+          ${Math.round(COURSE.capstone.assessment.passMark * 100)}% to pass.</p>
           <div class="card-foot">${capStatus}</div>
         </div>
       </section>
 
       <section class="card">
-        <h3>The seven-week journey <span class="muted small">(modelled on the September 2026 cohort)</span></h3>
+        <h3>The seven-week journey <span class="muted small">(suggested pacing — go at your own speed)</span></h3>
         <div class="agenda">
           ${COURSE.agenda.map(a => `
             <div class="agenda-row">
@@ -369,14 +365,13 @@
     } else {
       const score = aq.answers.filter((a, i) => a === aq.questions[i].answer).length / aq.questions.length;
       const passed = score >= aq.passMark;
-      const canRetry = !isFinal || finalAttemptsLeft() > 0;
       footer = `
         <div class="quiz-result ${passed ? "good" : "bad"}">
           You scored <strong>${Math.round(score * 100)}%</strong> —
           ${passed ? "passed. Well done." : "below the " + Math.round(aq.passMark * 100) + "% pass mark."}
-          ${isFinal ? `<br><span class="small">${finalAttemptsLeft()} attempt(s) remaining.</span>` : ""}
+          ${isFinal && !passed ? `<br><span class="small">Retakes draw a fresh set of questions.</span>` : ""}
         </div>
-        ${canRetry ? `<button class="btn ${passed ? "" : "primary"}" id="quizAgain">${passed ? "Retake anyway" : "Try again"}</button>` : ""}
+        <button class="btn ${passed ? "" : "primary"}" id="quizAgain">${passed ? "Retake anyway" : "Try again"}</button>
         <button class="btn" id="quizBack">Back</button>`;
     }
 
@@ -456,22 +451,11 @@
 
     const best = state.quizScores["capstone"];
     const ready = capstoneTasksDone();
-    const attemptsLeft = finalAttemptsLeft();
     const passed = quizPassed("capstone");
 
-    let assessmentBlock;
-    if (!ready) {
-      assessmentBlock = `<p class="lock">🔒 Complete all four applied tasks above (and save) to unlock the assessment.</p>`;
-    } else if (attemptsLeft > 0 || passed) {
-      assessmentBlock = attemptsLeft > 0
-        ? `<button class="btn primary" id="capQuiz">${best != null ? "Retake assessment" : "Start assessment"}</button>`
-        : "";
-    } else {
-      assessmentBlock = `
-        <p class="lock">In the real certificate, three failed attempts would end the assessment window.
-        Here you can review the modules and unlock three more.</p>
-        <button class="btn" id="capUnlock">Review done — unlock 3 more attempts</button>`;
-    }
+    const assessmentBlock = ready
+      ? `<button class="btn primary" id="capQuiz">${best != null ? "Retake assessment" : "Start assessment"}</button>`
+      : `<p class="lock">🔒 Complete all four applied tasks above (and save) to unlock the assessment.</p>`;
 
     main.innerHTML = `
       <section class="card">
@@ -491,9 +475,9 @@
 
       <section class="card">
         <h3>${esc(cap.assessment.title)}</h3>
-        <p class="muted small">${cap.assessment.count} questions drawn from all three modules and the scenario
-        · pass mark ${Math.round(cap.assessment.passMark * 100)}% · ${cap.assessment.maxAttempts} attempts, as in the real certificate.
-        ${best != null ? `Best score: <strong>${Math.round(best * 100)}%</strong>${passed ? " — passed ✓" : ""} · ${attemptsLeft} attempt(s) remaining.` : ""}</p>
+        <p class="muted small">${cap.assessment.count} questions drawn fresh from all three modules and the scenario
+        on every attempt · pass mark ${Math.round(cap.assessment.passMark * 100)}% · retake as often as you need.
+        ${best != null ? `Best score: <strong>${Math.round(best * 100)}%</strong>${passed ? " — passed ✓" : ""}` : ""}</p>
         ${assessmentBlock}
       </section>`;
 
@@ -512,13 +496,6 @@
       render(); scrollTop();
     });
 
-    const cu = $("#capUnlock");
-    if (cu) cu.addEventListener("click", () => {
-      state.quizAttempts["capstone"] = 0;
-      save();
-      toast("Three more attempts unlocked.");
-      renderCapstone();
-    });
   }
 
   /* ---------- certificate ---------- */
@@ -554,10 +531,10 @@
           <h1 class="cert-name">${esc(state.name || "Course Participant")}</h1>
           <p class="cert-body">has completed the seven-week course</p>
           <h2 class="cert-course">${esc(COURSE.title)}</h2>
-          <p class="cert-body">covering finance business partnering essentials, influential
-          finance business partnering, and strategic finance business partnering —
-          including three applied workshops, a capstone business scenario, and a
-          final assessment across all modules.</p>
+          <p class="cert-body">covering the foundations of finance business partnering,
+          turning analysis into insight and influence, and advising with a strategic
+          lens — including three applied workshops, a capstone business scenario,
+          and a final assessment across all modules.</p>
           <div class="cert-scores">${esc(scores)}</div>
           <div class="cert-date">Completed ${esc(date)}</div>
         </div>

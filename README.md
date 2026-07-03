@@ -1,7 +1,7 @@
 # Rekindle — Burnout Recovery & Career Coach
 
-> **Also in this repo:** [`fbp-course/`](fbp-course/) — a 7-week interactive
-> *Certificate in Finance Business Partnering* course app (lessons, workshops,
+> **Also in this repo:** [`fbp-course/`](fbp-course/) — *The Finance Business
+> Partner's Playbook*, a 7-week interactive course app (lessons, workshops,
 > quizzes, capstone scenario, final assessment, printable certificate).
 
 A private, local-first coaching app for someone who recently quit a finance job due to

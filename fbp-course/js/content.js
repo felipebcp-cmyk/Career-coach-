@@ -1,16 +1,16 @@
-/* Course content — Certificate in Finance Business Partnering.
-   Original material modelled on the skill set of finance business partnering
-   certificates (mindset, insight, communication, influence). */
+/* Course content — The Finance Business Partner's Playbook.
+   An original seven-week course on finance business partnering:
+   mindset, insight, communication, influence and advisership. */
 
 const COURSE = {
-  title: "Certificate in Finance Business Partnering",
+  title: "The Finance Business Partner's Playbook",
   passMark: 0.8,
   modules: [
 
     /* ================= MODULE 1 ================= */
     {
       id: "m1",
-      title: "Finance Business Partnering Essentials",
+      title: "Foundations: Thinking Like a Partner",
       weeks: "Weeks 1–2",
       intro:
         "What a finance business partner actually does, the mindset shift from " +
@@ -320,7 +320,7 @@ const COURSE = {
     /* ================= MODULE 2 ================= */
     {
       id: "m2",
-      title: "Influential Finance Business Partnering",
+      title: "From Analysis to Influence",
       weeks: "Weeks 3–4",
       intro:
         "Turning analysis into narratives that drive action — and building the " +
@@ -691,7 +691,7 @@ const COURSE = {
     /* ================= MODULE 3 ================= */
     {
       id: "m3",
-      title: "Strategic Finance Business Partnering",
+      title: "The Advisor's Seat: Strategy, Decisions and Hard Calls",
       weeks: "Weeks 5–6",
       intro:
         "Bringing the strategic lens to partnering: human-centred problem solving, " +
@@ -1049,13 +1049,12 @@ const COURSE = {
           "and the top risk from your pre-mortem with its mitigation."
       }
     ],
-    /* Final assessment mirrors the real certificate: 20 questions drawn from all
-       modules (plus the scenario), 50% pass mark, up to three attempts. */
+    /* Final assessment: 20 questions sampled fresh from all modules and the
+       scenario on every attempt; 70% to pass; retake as often as needed. */
     assessment: {
       title: "Final assessment",
       count: 20,
-      passMark: 0.5,
-      maxAttempts: 3
+      passMark: 0.7
     },
     scenarioQuestions: [
         {
@@ -1127,14 +1126,14 @@ const COURSE = {
     ]
   },
 
-  /* Cohort agenda modelled on the Sep 2026 intake. */
+  /* Suggested pacing — self-paced, so treat weeks as a rhythm, not deadlines. */
   agenda: [
-    { when: "From 7 September 2026", what: "Finance business partnering essentials (MC1)", type: "Self-paced digital learning" },
-    { when: "15 September 2026, 1–3pm AEST", what: "Workshop 1 — Your partnering baseline", type: "Live virtual workshop" },
-    { when: "From 16 September 2026", what: "Influential finance business partnering (MC2)", type: "Self-paced digital learning" },
-    { when: "29 September 2026, 1–3pm AEST", what: "Workshop 2 — Rewrite the commentary", type: "Live virtual workshop" },
-    { when: "From 30 September 2026", what: "Strategic finance business partnering (MC3)", type: "Self-paced digital learning" },
-    { when: "13 October 2026, 1–3pm AEDT", what: "Workshop 3 — The one-page recommendation", type: "Live virtual workshop" },
-    { when: "18–23 October 2026", what: "Final assessment — 20 questions across all modules · 50% to pass · 3 attempts", type: "Assessment window" }
+    { when: "Week 1", what: "Module 1 lessons — the role, the mindset", type: "Self-paced lessons" },
+    { when: "Week 2", what: "Workshop 1 — Your partnering baseline · Module 1 knowledge check", type: "Applied practice" },
+    { when: "Week 3", what: "Module 2 lessons — insight, storytelling, audiences", type: "Self-paced lessons" },
+    { when: "Week 4", what: "Workshop 2 — Rewrite the commentary · Module 2 knowledge check", type: "Applied practice" },
+    { when: "Week 5", what: "Module 3 lessons — strategy, decisions, hard calls", type: "Self-paced lessons" },
+    { when: "Week 6", what: "Workshop 3 — The one-page recommendation · Module 3 knowledge check", type: "Applied practice" },
+    { when: "Week 7", what: "Capstone scenario, then the final assessment — 20 questions · 70% to pass", type: "Capstone & assessment" }
   ]
 };
