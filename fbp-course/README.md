@@ -30,20 +30,43 @@ python3 -m http.server 8080
 
 ## Assessment
 
-- Module knowledge checks: 8–10 questions each, 80% target, unlimited retakes —
-  practice for the final.
+- Module knowledge checks: 8–10 questions each, 80% target, unlimited retakes.
+  Question order and answer order reshuffle on every attempt.
 - Final assessment: 20 questions sampled fresh from all modules and the capstone
   scenario on every attempt, 70% pass mark, retake as needed.
-- Pass everything and a printable **certificate of completion** is issued.
+- Everything is open-book and self-assessed: correct answers are explained after
+  each submission. The certificate certifies completion of the course, not
+  proctored mastery.
+- Pass everything and a printable **certificate of completion** is issued (the
+  name on it can be changed from the Certificate tab).
 
-## Gating
+## Progress & gating
+
+Progress = 40% lessons + 15% workshops (a saved deliverable of 40+ characters
+counts) + 25% knowledge checks + 20% final assessment.
 
 Lessons → unlock the module's knowledge check → all three checks passed →
-unlock the capstone → all four scenario tasks written → unlock the final
-assessment → pass → certificate.
+unlock the capstone → all four scenario tasks written (80+ characters each) →
+unlock the final assessment → pass → certificate. Workshops count toward
+progress but aren't required for the certificate.
+
+## Navigation & data
+
+Views and open lessons live in the URL hash (e.g. `#m2/m2l3`), so refresh and
+back/forward work and lessons can be deep-linked. In-progress quiz attempts are
+in-memory only — navigating away asks for confirmation, and a refresh discards
+the attempt. State is one `localStorage` key, sanitized against the current
+course content on load, with export **and import** of JSON backups in the
+footer.
+
+## Tests
+
+`node test/e2e.js` drives the full journey (onboarding → lessons → workshops →
+quizzes → capstone → final assessment → certificate) in a real browser. It
+starts its own local server; it needs `playwright` installed and `python3` on
+PATH. Set `CHROMIUM_PATH` if Playwright's default browser isn't downloaded.
 
 ## Tech
 
 Vanilla HTML/CSS/JS, no build step, no dependencies. Course data lives in
-`js/content.js`; app logic in `js/app.js`. State is one `localStorage` key with
-export-to-JSON backup.
+`js/content.js`; app logic in `js/app.js`.
