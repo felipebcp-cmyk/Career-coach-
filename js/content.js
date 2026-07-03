@@ -66,13 +66,13 @@ const COUNCIL = [
 
 /* ---------- 12-week program ---------- */
 const PHASES = [
-  { id: "recover",  name: "Recover",  weeks: [1, 2, 3],    color: "recover",
+  { id: "recover",  name: "Recover",  weeks: [1, 2, 3],
     tagline: "Rest and repair. No job hunting. Your only job is to refill the tank." },
-  { id: "reflect",  name: "Reflect",  weeks: [4, 5, 6],    color: "reflect",
+  { id: "reflect",  name: "Reflect",  weeks: [4, 5, 6],
     tagline: "Understand what happened and what you actually want next." },
-  { id: "rebuild",  name: "Rebuild",  weeks: [7, 8, 9],    color: "rebuild",
+  { id: "rebuild",  name: "Rebuild",  weeks: [7, 8, 9],
     tagline: "Grow skills, reconnect with people, explore options with curiosity." },
-  { id: "relaunch", name: "Relaunch", weeks: [10, 11, 12], color: "relaunch",
+  { id: "relaunch", name: "Relaunch", weeks: [10, 11, 12],
     tagline: "Targeted search, sharp story, sustainable pace. Land the right role, not just a role." }
 ];
 

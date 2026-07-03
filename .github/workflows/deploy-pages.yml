@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      # Pre-merge preview only. REMOVE this trigger once PR #1 merges —
+      # both branches share the "pages" concurrency group, so a stale push
+      # here would overwrite the production deployment from main.
       - claude/burnout-recovery-coach-app-tglqib
   workflow_dispatch:
 

@@ -46,8 +46,8 @@
 
 <!-- Onboarding -->
 <div class="modal-backdrop hidden" id="onboarding">
-  <div class="modal">
-    <h2>Welcome. You made a brave call.</h2>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="obTitle">
+    <h2 id="obTitle">Welcome. You made a brave call.</h2>
     <p>Quitting a job that was burning you out isn't a failure — it's the first act of
     someone taking their life back. This coach will walk you through twelve weeks:
     <strong>Recover → Reflect → Rebuild → Relaunch</strong>. Rest comes first. The job
@@ -57,9 +57,12 @@
       <input type="text" id="obName" placeholder="Your first name" maxlength="30">
     </label>
     <label class="field">
-      <span>When did you leave the job (roughly)?</span>
+      <span>When should your 12-week program start?</span>
       <input type="date" id="obDate">
     </label>
+    <p style="font-size:13px;color:var(--ink-3);margin-top:-4px">Left the job a while
+    ago? Start today anyway — the program meets you where you are now, and rest still
+    comes first.</p>
     <button class="btn primary" id="obStart">Start my recovery</button>
   </div>
 </div>

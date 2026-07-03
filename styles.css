@@ -5,7 +5,7 @@
   --surface-2: #f1ede6;
   --ink: #26241f;
   --ink-2: #5a564d;
-  --ink-3: #8d887c;
+  --ink-3: #6e6a5f;   /* ≥4.5:1 on the light surfaces — used for small hint text */
   --line: #e5e0d6;
   --accent: #2a6f6a;        /* deep calm teal */
   --accent-soft: #e3efee;
@@ -18,7 +18,7 @@
   --viz-series: #2a78d6;
   --viz-grid: #e1e0d9;
   --viz-axis: #c3c2b7;
-  --viz-muted: #898781;
+  --viz-muted: #6f6d66;
   --radius: 14px;
   --shadow: 0 1px 2px rgba(38,36,31,.05), 0 4px 16px rgba(38,36,31,.06);
   font-size: 16px;
