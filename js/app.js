@@ -17,24 +17,70 @@ function defaultState() {
     journal: {},                   // journeyId -> {idx: answer}
     options: [],                   // {id, name, notes, scores: {critId: 1-10}}
     skills: [],                    // {id, name, hoursTarget, logs: [{date, mins}]}
-    weekly: {},                    // weekKey -> {focus, top3: ["",...], done:[bool]}
-    identity: ""
+    weekly: {},                    // weekKey -> {focus, top3: ["",...], done:[bool], retro: {...}}
+    identity: "",
+    stories: [],                   // {id, title, situation, task, action, result}
+    apps: [],                      // {id, company, role, status, date, next}
+    breakStory: "",
+    reminders: {
+      checkin: { on: true,  time: "20:30" },
+      skill:   { on: false, time: "09:00" },
+      retro:   { on: true,  time: "18:00" }   // Sundays
+    },
+    lastFired: {}                  // reminderId -> date it last notified
   };
 }
 
 function load() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+    if (raw) return normalize(JSON.parse(raw));
   } catch (e) { /* corrupted -> fresh start */ }
   return defaultState();
 }
-function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+/* Coerce any stored/imported blob into a shape the views can't crash on. */
+function normalize(data) {
+  const out = Object.assign(defaultState(), data);
+  ["checkins", "journal", "weekly", "lastFired"].forEach(k => {
+    if (typeof out[k] !== "object" || out[k] === null || Array.isArray(out[k])) out[k] = {};
+  });
+  ["habits", "wins", "evidence", "reframes", "options", "skills", "stories", "apps"].forEach(k => {
+    if (!Array.isArray(out[k])) out[k] = [];
+  });
+  const defaults = defaultState().reminders;
+  if (typeof out.reminders !== "object" || out.reminders === null) out.reminders = defaults;
+  Object.keys(defaults).forEach(id => {
+    const r = out.reminders[id];
+    out.reminders[id] = {
+      on: r ? !!r.on : defaults[id].on,
+      time: (r && typeof r.time === "string" && /^\d\d:\d\d$/.test(r.time)) ? r.time : defaults[id].time
+    };
+  });
+  return out;
+}
+
+let saveWarned = false;
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    saveWarned = false;
+  } catch (e) {
+    if (!saveWarned) {
+      saveWarned = true;
+      toast("⚠ Couldn't save — storage is full or blocked. Export a backup now.");
+    }
+  }
+}
 
 /* ---------------- date helpers ---------------- */
 const DAY = 86400000;
-function todayKey() { return new Date().toISOString().slice(0, 10); }
-function dateKey(d) { return d.toISOString().slice(0, 10); }
+/* Day keys are LOCAL dates — never toISOString/UTC. A check-in at 22:00 must
+   land on the user's today, not tomorrow-in-UTC. */
+function dateKey(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function todayKey() { return dateKey(new Date()); }
 function weekKey(d = new Date()) {
   // Monday-based week key
   const x = new Date(d); const day = (x.getDay() + 6) % 7;
@@ -43,7 +89,7 @@ function weekKey(d = new Date()) {
 }
 function currentWeekNum() {
   if (!state.startDate) return 1;
-  const diff = Math.floor((Date.now() - new Date(state.startDate).getTime()) / DAY);
+  const diff = Math.floor((Date.now() - new Date(state.startDate.slice(0, 10) + "T00:00").getTime()) / DAY);
   return Math.max(1, Math.floor(diff / 7) + 1);
 }
 function currentPhase() {
@@ -61,7 +107,6 @@ function el(tag, attrs = {}, ...children) {
   for (const [k, v] of Object.entries(attrs)) {
     if (k === "class") n.className = v;
     else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
-    else if (k === "html") n.innerHTML = v;
     else n.setAttribute(k, v);
   }
   for (const c of children) {
@@ -79,10 +124,11 @@ function toast(msg) {
 }
 function uid() { return Math.random().toString(36).slice(2, 9); }
 
-/* deterministic per-day pick, so the daily note is stable all day */
-function dailyPick(arr) {
+/* deterministic per-local-day pick, so the daily note is stable all day;
+   `offset` decorrelates callers that share an array length */
+function dailyPick(arr, offset = 0) {
   const seed = todayKey().split("-").join("");
-  return arr[Number(seed) % arr.length];
+  return arr[(Number(seed) + offset) % arr.length];
 }
 
 function coachNote(personaId, text) {
@@ -97,12 +143,15 @@ function coachNote(personaId, text) {
 
 /* ---------------- router ---------------- */
 const VIEWS = { today: viewToday, program: viewProgram, reflect: viewReflect,
-  confidence: viewConfidence, compass: viewCompass, skills: viewSkills, council: viewCouncil };
+  confidence: viewConfidence, compass: viewCompass, skills: viewSkills,
+  launch: viewLaunch, council: viewCouncil, retro: viewRetro, reminders: viewReminders };
 
 function navigate(view) {
   if (!VIEWS[view]) view = "today";
-  location.hash = view;
-  render();
+  // setting the hash fires the hashchange listener, which renders — calling
+  // render() here too would double-render every navigation
+  if (location.hash === "#" + view) render();
+  else location.hash = view;
 }
 function render() {
   const view = (location.hash || "#today").slice(1).split("/")[0];
@@ -129,6 +178,15 @@ function viewToday(root) {
   const [pid, note] = dailyPick(PHASE_NOTES[phase.id]);
   root.append(coachNote(pid, note));
 
+  // gentle nudge if the check-in time has passed and today's isn't done
+  const r = state.reminders.checkin;
+  if (r.on && !state.checkins[todayKey()] && nowHM() >= r.time) {
+    root.append(el("div", { class: "nudge mt" }, "🔔",
+      el("span", {}, "Your evening check-in is still open — two minutes before bed."),
+      el("span", { class: "spacer" }),
+      el("button", { class: "btn small", onclick: () => navigate("reminders") }, "Reminder settings")));
+  }
+
   const grid = el("div", { class: "grid two mt" });
   grid.append(checkinCard(), habitsCard(phase));
   root.append(grid);
@@ -143,6 +201,8 @@ function greeting() {
   return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 }
 
+let editingCheckin = false; // "Edit" reopens the form prefilled; nothing is deleted
+
 function checkinCard() {
   const card = el("div", { class: "card" },
     el("h2", {}, "Daily check-in"),
@@ -150,17 +210,19 @@ function checkinCard() {
   const today = todayKey();
   const existing = state.checkins[today];
 
-  if (existing) {
+  if (existing && !editingCheckin) {
     card.append(el("p", { class: "checkin-done" }, `✓ Checked in today — energy ${existing.energy}/10 ${existing.mood || ""}`));
     if (existing.note) card.append(el("p", { class: "sub" }, `“${existing.note}”`));
-    card.append(el("button", { class: "btn small mt", onclick: () => { delete state.checkins[today]; save(); render(); } }, "Edit"));
+    card.append(el("button", { class: "btn small mt", onclick: () => { editingCheckin = true; render(); } }, "Edit"));
     return card;
   }
 
-  let energy = null, mood = null;
+  let energy = existing ? existing.energy : null;
+  let mood = existing ? existing.mood : null;
   const scale = el("div", { class: "energy-scale" });
   for (let i = 1; i <= 10; i++) {
-    const b = el("button", { class: "energy-dot", onclick: () => {
+    const b = el("button", { class: "energy-dot" + (energy && i <= energy ? " sel" : ""),
+      "aria-label": `Energy ${i} of 10`, onclick: () => {
       energy = i;
       scale.querySelectorAll(".energy-dot").forEach((d, j) => d.classList.toggle("sel", j < i));
     } }, String(i));
@@ -169,13 +231,18 @@ function checkinCard() {
   const moods = [["😞", "drained"], ["😐", "flat"], ["🙂", "steady"], ["😄", "good"], ["⚡", "energized"]];
   const moodRow = el("div", { class: "mood-row" });
   moods.forEach(([emo, label]) => {
-    const b = el("button", { class: "mood-btn", title: label, onclick: () => {
+    const b = el("button", { class: "mood-btn" + (mood === emo ? " sel" : ""), title: label,
+      "aria-label": label, "aria-pressed": String(mood === emo), onclick: () => {
       mood = emo;
-      moodRow.querySelectorAll(".mood-btn").forEach(m => m.classList.toggle("sel", m === b));
+      moodRow.querySelectorAll(".mood-btn").forEach(m => {
+        m.classList.toggle("sel", m === b);
+        m.setAttribute("aria-pressed", String(m === b));
+      });
     } }, emo);
     moodRow.append(b);
   });
   const noteIn = el("textarea", { placeholder: "Anything worth noting about today? (optional)", rows: "2" });
+  if (existing && existing.note) noteIn.value = existing.note;
   card.append(
     el("div", { class: "field" }, el("span", {}, "Energy today (1 = empty, 10 = full)")), scale,
     el("div", { class: "field" }, el("span", {}, "Mood")), moodRow,
@@ -183,8 +250,9 @@ function checkinCard() {
     el("button", { class: "btn primary mt", onclick: () => {
       if (!energy) return toast("Pick an energy level first");
       state.checkins[today] = { energy, mood, note: noteIn.value.trim() };
-      save(); render(); toast("Checked in. Well done.");
-    } }, "Save check-in")
+      editingCheckin = false;
+      save(); render(); toast(existing ? "Check-in updated." : "Checked in. Well done.");
+    } }, existing ? "Update check-in" : "Save check-in")
   );
   return card;
 }
@@ -202,7 +270,9 @@ function habitsCard(phase) {
     const done = !!h.log[today];
     const s = streak(h);
     card.append(el("div", { class: "habit" },
-      el("button", { class: "habit-check" + (done ? " done" : ""), onclick: () => {
+      el("button", { class: "habit-check" + (done ? " done" : ""),
+        "aria-label": `${h.name} — ${done ? "done, tap to undo" : "mark done"}`,
+        "aria-pressed": String(done), onclick: () => {
         if (done) delete h.log[today]; else h.log[today] = true;
         save(); render();
       } }, "✓"),
@@ -242,8 +312,9 @@ function habitsCard(phase) {
 function streak(h) {
   let s = 0;
   const d = new Date();
-  if (!h.log[dateKey(d)]) d.setTime(d.getTime() - DAY); // today not done yet doesn't break the streak
-  while (h.log[dateKey(d)]) { s++; d.setTime(d.getTime() - DAY); }
+  // setDate, not -86400000ms: DST days are 23/25h and would skip/repeat a key
+  if (!h.log[dateKey(d)]) d.setDate(d.getDate() - 1); // today not done yet doesn't break the streak
+  while (h.log[dateKey(d)]) { s++; d.setDate(d.getDate() - 1); }
   return s;
 }
 
@@ -253,7 +324,11 @@ function winsQuickCard() {
   const card = el("div", { class: "card" },
     el("h2", {}, "Three wins today"),
     el("p", { class: "sub" }, "Your brain has a negativity bias. This log is the correction. Tiny wins count — “went outside” counts."));
-  todays.forEach(w => card.append(el("div", { class: "win-item" }, "🏆 " + w.text)));
+  todays.forEach(w => card.append(el("div", { class: "win-item row between" },
+    el("span", {}, "🏆 " + w.text),
+    el("button", { class: "habit-del", title: "Remove win", onclick: () => {
+      state.wins = state.wins.filter(x => x !== w); save(); render();
+    } }, "×"))));
   if (todays.length < 3) {
     const input = el("input", { type: "text", placeholder: `Win #${todays.length + 1}…`, maxlength: "140" });
     input.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
@@ -275,17 +350,84 @@ function weeklyPlanCard() {
     el("h2", {}, "This week's plan"),
     el("p", { class: "sub" }, "One focus. Three priorities. Everything else is backlog. Review on Sunday."));
   const focusIn = el("input", { type: "text", value: plan.focus, placeholder: "Weekly focus, e.g. “Finish the Why Finance journey”",
-    onchange: e => { plan.focus = e.target.value.trim(); save(); } });
+    oninput: e => { plan.focus = e.target.value.trim(); save(); } });
   card.append(el("div", { class: "field" }, el("span", {}, "Focus"), focusIn));
   plan.top3.forEach((t, i) => {
-    const check = el("button", { class: "habit-check" + (plan.done[i] ? " done" : ""), onclick: () => {
+    const check = el("button", { class: "habit-check" + (plan.done[i] ? " done" : ""),
+      "aria-label": `Priority ${i + 1} ${plan.done[i] ? "done, tap to undo" : "mark done"}`,
+      "aria-pressed": String(plan.done[i]), onclick: () => {
       plan.done[i] = !plan.done[i]; save(); render();
     } }, "✓");
     const inp = el("input", { type: "text", value: t, placeholder: `Priority ${i + 1}`,
-      onchange: e => { plan.top3[i] = e.target.value.trim(); save(); } });
+      oninput: e => { plan.top3[i] = e.target.value.trim(); save(); } });
     card.append(el("div", { class: "row", style: "margin:7px 0" }, check, inp));
   });
+  card.append(el("button", { class: "btn small mt", onclick: () => navigate("retro") }, "Sunday retro →"));
   return card;
+}
+
+/* ================= WEEKLY RETRO ================= */
+function viewRetro(root) {
+  const wk = weekKey();
+  const plan = state.weekly[wk] || (state.weekly[wk] = { focus: "", top3: ["", "", ""], done: [false, false, false] });
+  const retro = plan.retro || (plan.retro = { worked: "", drained: "", lesson: "", nextFocus: "" });
+
+  // this week's numbers
+  const wkDates = [];
+  { const d = new Date(wk + "T12:00"); for (let i = 0; i < 7; i++) { wkDates.push(dateKey(d)); d.setDate(d.getDate() + 1); } }
+  const energies = wkDates.map(d => state.checkins[d]).filter(Boolean).map(c => c.energy);
+  const avgEnergy = energies.length ? (energies.reduce((a, b) => a + b, 0) / energies.length).toFixed(1) : "—";
+  const habitDone = state.habits.reduce((s, h) => s + wkDates.filter(d => h.log[d]).length, 0);
+  const habitPossible = state.habits.length * wkDates.filter(d => d <= todayKey()).length;
+  const habitPct = habitPossible ? Math.round(habitDone / habitPossible * 100) + "%" : "—";
+  const winsWk = state.wins.filter(w => wkDates.includes(w.date)).length;
+  const skillMins = state.skills.reduce((s, sk) => s + sk.logs.filter(l => wkDates.includes(l.date)).reduce((a, l) => a + l.mins, 0), 0);
+
+  root.append(
+    el("button", { class: "linklike no-print", onclick: () => navigate("today") }, "← Back to Today"),
+    el("h1", { class: "section-title", style: "margin-top:10px" }, `Weekly review — week of ${fmtDate(wk)}`),
+    el("p", { class: "section-sub" }, "Fifteen minutes, once a week. Consistency of review beats intensity of planning.")
+  );
+
+  const card = el("div", { class: "card" },
+    el("h2", {}, "The week in numbers"),
+    el("div", { class: "stat-row" },
+      statTile(avgEnergy, "avg energy /10"),
+      statTile(habitPct, "habits kept"),
+      statTile(String(winsWk), "wins logged"),
+      statTile((skillMins / 60).toFixed(1) + "h", "skill time")),
+    plan.focus ? el("p", { class: "sub" }, `This week's focus was: “${plan.focus}”`) : null
+  );
+  root.append(card);
+
+  const form = el("div", { class: "card mt" }, el("h2", {}, "The retro"));
+  const fields = [
+    ["worked", "What worked this week?", "Energy givers, habits that stuck, moments of momentum."],
+    ["drained", "What drained you or got skipped?", "No self-flagellation — just name it so next week can route around it."],
+    ["lesson", "One lesson to carry forward", "If next-week-you could only remember one sentence from this week…"],
+    ["nextFocus", "Next week's focus", "One thing. It becomes next week's plan automatically."]
+  ];
+  fields.forEach(([id, label, hint]) => {
+    const ta = el("textarea", { rows: "2", placeholder: hint });
+    ta.value = retro[id] || "";
+    ta.addEventListener("input", () => {
+      retro[id] = ta.value; save();
+      if (id === "nextFocus") {
+        const nxt = weekKey(new Date(new Date(wk + "T12:00").getTime() + 7 * DAY));
+        const nplan = state.weekly[nxt] || (state.weekly[nxt] = { focus: "", top3: ["", "", ""], done: [false, false, false] });
+        nplan.focus = ta.value.trim(); save();
+      }
+    });
+    form.append(el("div", { class: "q-block" }, el("div", { class: "q" }, label), ta));
+  });
+  form.append(el("div", { class: "row no-print" },
+    el("button", { class: "btn primary", onclick: () => { toast("Retro saved. See you next Sunday."); navigate("today"); } }, "Done"),
+    el("button", { class: "btn", onclick: () => window.print() }, "🖨 Print review sheet")));
+  root.append(form);
+}
+
+function statTile(val, lbl) {
+  return el("div", { class: "stat-tile" }, el("div", { class: "val" }, val), el("div", { class: "lbl" }, lbl));
 }
 
 /* ================= PROGRAM ================= */
@@ -337,7 +479,11 @@ function buildEnergyChart(entries) {
   const W = 640, H = 200, padL = 30, padR = 14, padT = 12, padB = 24;
   const iw = W - padL - padR, ih = H - padT - padB;
   const n = entries.length;
-  const x = i => padL + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+  // x is scaled by TIME, not index — a 10-day gap must look like a gap,
+  // or "decide with the trend" becomes a lie
+  const ts = entries.map(([d]) => new Date(d + "T12:00").getTime());
+  const t0 = ts[0], span = ts[n - 1] - t0 || 1;
+  const x = i => padL + ((ts[i] - t0) / span) * iw;
   const y = v => padT + (1 - v / 10) * ih;
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -384,16 +530,27 @@ function buildEnergyChart(entries) {
       svg.append(lbl);
     }
     const hit = mk("circle", { cx: pts[i][0], cy: pts[i][1], r: 12, fill: "transparent", style: "cursor:pointer" });
-    hit.addEventListener("mouseenter", () => {
+    const showTip = () => {
       const tip = $("#vizTip");
       if (!tip) return;
       tip.textContent = `${fmtDate(d)} — energy ${c.energy}/10${c.mood ? " " + c.mood : ""}`;
-      const box = svg.getBoundingClientRect();
-      tip.style.left = (pts[i][0] / W * box.width) + "px";
-      tip.style.top = (pts[i][1] / H * box.height) + "px";
+      // position relative to the tooltip's own offset parent, not the svg box —
+      // .viz-root has padding, so the two coordinate spaces differ
+      const svgBox = svg.getBoundingClientRect();
+      const parentBox = tip.parentElement.getBoundingClientRect();
+      tip.style.left = (svgBox.left - parentBox.left + pts[i][0] / W * svgBox.width) + "px";
+      tip.style.top = (svgBox.top - parentBox.top + pts[i][1] / H * svgBox.height) + "px";
       tip.classList.add("show");
+    };
+    const hideTip = () => { const tip = $("#vizTip"); if (tip) tip.classList.remove("show"); };
+    hit.addEventListener("pointerenter", showTip);
+    hit.addEventListener("pointerleave", hideTip);
+    // touch has no hover: a tap pins the tooltip briefly
+    hit.addEventListener("click", () => {
+      showTip();
+      clearTimeout(svg._tipTimer);
+      svg._tipTimer = setTimeout(hideTip, 2500);
     });
-    hit.addEventListener("mouseleave", () => $("#vizTip") && $("#vizTip").classList.remove("show"));
     svg.append(hit);
   });
 
@@ -424,7 +581,7 @@ function viewReflect(root) {
   JOURNEYS.forEach(j => {
     const answers = state.journal[j.id] || {};
     const done = Object.values(answers).filter(a => a && a.trim()).length;
-    grid.append(el("div", { class: "card journey-card", onclick: () => { location.hash = `reflect/${j.id}`; render(); } },
+    grid.append(el("div", { class: "card journey-card", onclick: () => { location.hash = `reflect/${j.id}`; } },
       el("h2", {}, `${j.icon} ${j.title}`),
       el("p", { class: "sub" }, j.blurb),
       el("div", { class: "journey-progress" }, done ? `${done}/${j.questions.length} answered` : "Not started →")
@@ -436,7 +593,7 @@ function viewReflect(root) {
 function viewJourney(root, j) {
   const answers = state.journal[j.id] || (state.journal[j.id] = {});
   root.append(
-    el("button", { class: "linklike", onclick: () => { location.hash = "reflect"; render(); } }, "← All journeys"),
+    el("button", { class: "linklike", onclick: () => { location.hash = "reflect"; } }, "← All journeys"),
     el("h1", { class: "section-title", style: "margin-top:10px" }, `${j.icon} ${j.title}`),
     el("p", { class: "section-sub" }, j.blurb)
   );
@@ -568,13 +725,16 @@ function scorecardCard() {
     el("h2", {}, "Option scorecard"),
     el("p", { class: "sub" }, "Add concrete options (“Fintech PM at X”, “FP&A at mid-size co”, “Data analytics pivot”). Score each 1–10 on five weighted criteria. Energy fit weighs most — that's the lesson of the burnout."));
 
-  // ranked results
-  const scored = state.options.map(o => ({ o, total: optionScore(o) })).sort((a, b) => b.total - a.total);
-  scored.forEach(({ o, total }, idx) => {
-    const row = el("div", { class: "option-score" + (idx === 0 && scored.length > 1 ? " top" : "") },
+  // only fully-scored options compete — an unscored option must not outrank
+  // a carefully-scored one on phantom default 5s
+  const ranked = state.options.filter(isScored).map(o => ({ o, total: optionScore(o) })).sort((a, b) => b.total - a.total);
+  const unscored = state.options.filter(o => !isScored(o));
+
+  ranked.forEach(({ o, total }, idx) => {
+    const row = el("div", { class: "option-score" + (idx === 0 && ranked.length > 1 ? " top" : "") },
       el("div", {},
-        el("b", {}, (idx === 0 && scored.length > 1 ? "🏆 " : "") + o.name),
-        el("div", { class: "skill-meta" }, CRITERIA.map(c => `${c.label} ${o.scores[c.id] || 5}`).join(" · "))),
+        el("b", {}, (idx === 0 && ranked.length > 1 ? "🏆 " : "") + o.name),
+        el("div", { class: "skill-meta" }, CRITERIA.map(c => `${c.label} ${o.scores[c.id]}`).join(" · "))),
       el("div", { class: "row" },
         el("span", { class: "score" }, total.toFixed(1)),
         el("button", { class: "btn small", onclick: () => editOption(o) }, "Edit"),
@@ -583,6 +743,17 @@ function scorecardCard() {
         } }, "×")));
     card.append(row);
   });
+  unscored.forEach(o => {
+    card.append(el("div", { class: "option-score" },
+      el("div", {},
+        el("b", {}, o.name),
+        el("div", { class: "skill-meta" }, "Not scored yet — it sits out the ranking until you score it")),
+      el("div", { class: "row" },
+        el("button", { class: "btn small primary", onclick: () => editOption(o) }, "Score it"),
+        el("button", { class: "btn small ghost-danger", onclick: () => {
+          if (confirm(`Delete option “${o.name}”?`)) { state.options = state.options.filter(x => x !== o); save(); render(); }
+        } }, "×"))));
+  });
   if (!state.options.length) card.append(el("p", { class: "empty-hint" }, "No options scored yet. Add your first below."));
 
   const nameIn = el("input", { type: "text", placeholder: "Name a concrete option…", maxlength: "80" });
@@ -590,7 +761,6 @@ function scorecardCard() {
   function add() {
     const v = nameIn.value.trim(); if (!v) return;
     const o = { id: uid(), name: v, scores: {} };
-    CRITERIA.forEach(c => o.scores[c.id] = 5);
     state.options.push(o); save();
     editOption(o);
   }
@@ -598,30 +768,39 @@ function scorecardCard() {
   return card;
 }
 
+function isScored(o) {
+  return CRITERIA.every(c => o.scores && o.scores[c.id] != null);
+}
+
 function optionScore(o) {
   const totalW = CRITERIA.reduce((s, c) => s + c.weight, 0);
-  return CRITERIA.reduce((s, c) => s + (o.scores[c.id] || 5) * c.weight, 0) / totalW;
+  return CRITERIA.reduce((s, c) => s + o.scores[c.id] * c.weight, 0) / totalW;
 }
 
 function editOption(o) {
   // inline editor rendered in place of the whole view for simplicity
   const root = $("#main");
   root.replaceChildren(
-    el("button", { class: "linklike", onclick: render }, "← Back to Compass"),
+    el("button", { class: "linklike", onclick: render }, "← Back to Compass (discards unsaved scores)"),
     el("h1", { class: "section-title", style: "margin-top:10px" }, `Score: ${o.name}`),
-    el("p", { class: "section-sub" }, "1 = terrible fit · 10 = made for you. Be honest, not hopeful.")
+    el("p", { class: "section-sub" }, "1 = terrible fit · 10 = made for you. Be honest, not hopeful. “Save scores” records all five — including sliders you left at 5.")
   );
+  const vals = {};
+  CRITERIA.forEach(c => { vals[c.id] = o.scores[c.id] != null ? o.scores[c.id] : 5; });
   const card = el("div", { class: "card" });
   CRITERIA.forEach(c => {
-    const out = el("output", {}, String(o.scores[c.id] || 5));
-    const slider = el("input", { type: "range", min: "1", max: "10", value: o.scores[c.id] || 5 });
-    slider.addEventListener("input", () => { o.scores[c.id] = +slider.value; out.textContent = slider.value; save(); });
+    const out = el("output", {}, String(vals[c.id]));
+    const slider = el("input", { type: "range", min: "1", max: "10", value: vals[c.id], "aria-label": c.label });
+    slider.addEventListener("input", () => { vals[c.id] = +slider.value; out.textContent = slider.value; });
     card.append(
       el("div", { class: "slider-row" },
         el("label", { title: c.hint }, `${c.label} (${c.weight}%)`), slider, out),
       el("div", { class: "hint", style: "font-size:12.5px;color:var(--ink-3);margin:-2px 0 8px" }, c.hint));
   });
-  card.append(el("button", { class: "btn primary mt", onclick: render }, "Done"));
+  card.append(el("button", { class: "btn primary mt", onclick: () => {
+    o.scores = { ...vals };
+    save(); render(); toast("Scored. The ranking doesn't lie — but it only knows what you told it.");
+  } }, "Save scores"));
   root.append(card);
 }
 
@@ -655,6 +834,15 @@ function viewSkills(root) {
           s.logs.push({ date: todayKey(), mins: m }); save(); render(); toast(`${m} minutes logged. Compounding.`);
         } }, "Log session"),
         el("span", { class: "spacer" }),
+        el("span", { class: "skill-meta" }, "target"),
+        el("input", { type: "number", min: "0.5", step: "0.5", value: String(s.hoursTarget),
+          style: "width:70px", "aria-label": `Weekly hour target for ${s.name}`,
+          onchange: e => {
+            const v = parseFloat(e.target.value);
+            if (v > 0) { s.hoursTarget = v; save(); render(); }
+            else e.target.value = String(s.hoursTarget);
+          } }),
+        el("span", { class: "skill-meta" }, "h/wk"),
         el("button", { class: "btn small ghost-danger", onclick: () => {
           if (confirm(`Remove skill “${s.name}” and its logs?`)) { state.skills = state.skills.filter(x => x !== s); save(); render(); }
         } }, "Remove"))
@@ -682,11 +870,142 @@ function viewSkills(root) {
   root.append(sugCard);
 
   function addSkill(name) {
-    const hrs = parseFloat(prompt(`Weekly hour target for “${name}”? (small is fine — 3 is a great start)`, "3"));
-    if (!hrs || hrs <= 0) return;
-    state.skills.push({ id: uid(), name, hoursTarget: hrs, logs: [] });
-    save(); render(); toast("Bet placed. Now protect the streak.");
+    if (state.skills.some(s => s.name === name)) return toast("That skill is already on your list");
+    state.skills.push({ id: uid(), name, hoursTarget: 3, logs: [] });
+    save(); render(); toast("Bet placed — 3h/week to start; adjust the target on the card.");
   }
+}
+
+/* ================= LAUNCH ================= */
+function viewLaunch(root) {
+  root.append(
+    el("h1", { class: "section-title" }, "Launch toolkit"),
+    el("p", { class: "section-sub" }, "For the Relaunch phase: your break story, interview stories built from real evidence, and an application tracker with a sustainable pace built in.")
+  );
+  root.append(coachNote("marcus", "Interviews are storytelling with evidence. Five rehearsed STAR stories cover 90% of behavioral questions — build them from your evidence bank, not from memory under pressure."));
+
+  const grid = el("div", { class: "grid two mt" });
+  grid.append(breakStoryCard(), storiesCard());
+  root.append(grid);
+  root.append(appsCard());
+}
+
+function breakStoryCard() {
+  const card = el("div", { class: "card" },
+    el("h2", {}, "Your break story"),
+    el("p", { class: "sub" }, BREAK_STORY_GUIDE));
+  const ta = el("textarea", { rows: "5", placeholder: "I took a deliberate break after…" });
+  ta.value = state.breakStory || "";
+  ta.addEventListener("input", () => { state.breakStory = ta.value; save(); });
+  card.append(ta);
+  return card;
+}
+
+function storiesCard() {
+  const card = el("div", { class: "card" },
+    el("h2", {}, "STAR story bank"),
+    el("p", { class: "sub" }, `${state.stories.length} of 5 stories built. Steal raw material from your ${state.evidence.length} evidence-bank entries in Confidence.`));
+
+  state.stories.forEach(s => {
+    card.append(el("div", { class: "story-item" },
+      el("div", { class: "row between" },
+        el("span", { class: "story-title" }, s.title),
+        el("div", { class: "row" },
+          el("button", { class: "btn small", onclick: () => editStory(s) }, "Edit"),
+          el("button", { class: "btn small ghost-danger", onclick: () => {
+            if (confirm(`Delete story “${s.title}”?`)) { state.stories = state.stories.filter(x => x !== s); save(); render(); }
+          } }, "×"))),
+      el("div", { class: "story-body" },
+        ...STAR_FIELDS.map(f => s[f.id] ? el("div", {}, el("span", { class: "star-tag" }, f.label[0] + " · "), s[f.id]) : null))
+    ));
+  });
+
+  const unused = STORY_PROMPTS.filter(p => !state.stories.some(s => s.title === p));
+  if (unused.length) {
+    const sug = el("div", { class: "mt" }, el("span", { class: "sub" }, "Story prompts: "));
+    unused.slice(0, 3).forEach(p => sug.append(el("button", { class: "suggest-chip", onclick: () => {
+      const s = { id: uid(), title: p, situation: "", task: "", action: "", result: "" };
+      state.stories.push(s); save(); editStory(s);
+    } }, "+ " + p)));
+    card.append(sug);
+  }
+  const input = el("input", { type: "text", placeholder: "Or name your own story…", maxlength: "90" });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  function add() {
+    const v = input.value.trim(); if (!v) return;
+    const s = { id: uid(), title: v, situation: "", task: "", action: "", result: "" };
+    state.stories.push(s); save(); editStory(s);
+  }
+  card.append(el("div", { class: "row mt" }, input, el("button", { class: "btn small", onclick: add }, "Add")));
+  return card;
+}
+
+function editStory(s) {
+  const root = $("#main");
+  root.replaceChildren(
+    el("button", { class: "linklike", onclick: () => navigate("launch") }, "← Back to Launch"),
+    el("h1", { class: "section-title", style: "margin-top:10px" }, `Story: ${s.title}`),
+    el("p", { class: "section-sub" }, "Keep each part to 2–3 sentences. A STAR story told well runs about 90 seconds.")
+  );
+  const card = el("div", { class: "card" });
+  STAR_FIELDS.forEach(f => {
+    const ta = el("textarea", { rows: "3", placeholder: f.hint });
+    ta.value = s[f.id] || "";
+    ta.addEventListener("input", () => { s[f.id] = ta.value; save(); });
+    card.append(el("div", { class: "q-block" },
+      el("div", { class: "q" }, f.label),
+      el("div", { class: "hint" }, f.hint),
+      ta));
+  });
+  if (state.evidence.length) {
+    card.append(el("div", { class: "insight" }, "📌 Your evidence bank, for raw material: " +
+      state.evidence.slice(-5).map(e2 => e2.text).join(" · ")));
+  }
+  card.append(el("button", { class: "btn primary mt", onclick: () => navigate("launch") }, "Done"));
+  root.append(card);
+}
+
+function appsCard() {
+  const card = el("div", { class: "card mt" },
+    el("h2", {}, "Application tracker"),
+    el("p", { class: "sub" }, "Quality over volume. Every application gets a next step — an application without a next step is a wish."));
+
+  const active = state.apps.filter(a => a.status !== "Closed");
+  const counts = APP_STATUSES.map(st => [st, state.apps.filter(a => a.status === st).length]).filter(([, n]) => n);
+  if (counts.length) {
+    card.append(el("div", { class: "row" }, ...counts.map(([st, n]) =>
+      el("span", { class: "status-badge status-" + st.toLowerCase() }, `${st}: ${n}`))));
+  }
+
+  state.apps.slice().sort((a, b) => APP_STATUSES.indexOf(a.status) - APP_STATUSES.indexOf(b.status)).forEach(a => {
+    const sel = el("select", {}, ...APP_STATUSES.map(st =>
+      el("option", { value: st, ...(st === a.status ? { selected: "" } : {}) }, st)));
+    sel.addEventListener("change", () => { a.status = sel.value; save(); render(); });
+    const nextIn = el("input", { type: "text", value: a.next || "", placeholder: "Next step…", style: "max-width:220px;font-size:13px;padding:5px 9px",
+      oninput: e => { a.next = e.target.value.trim(); save(); } });
+    card.append(el("div", { class: "app-row" },
+      el("span", { class: "status-badge status-" + a.status.toLowerCase() }, a.status),
+      el("span", { class: "co" }, a.company),
+      el("span", { class: "role" }, a.role),
+      el("span", { class: "spacer" }),
+      nextIn, sel,
+      el("button", { class: "habit-del", title: "Delete", onclick: () => {
+        if (confirm(`Delete ${a.company} — ${a.role}?`)) { state.apps = state.apps.filter(x => x !== a); save(); render(); }
+      } }, "×")));
+  });
+  if (!state.apps.length) card.append(el("p", { class: "empty-hint" }, "Nothing tracked yet. When the Relaunch phase starts, every application lives here."));
+
+  const co = el("input", { type: "text", placeholder: "Company", maxlength: "60", style: "max-width:200px" });
+  const role = el("input", { type: "text", placeholder: "Role", maxlength: "80", style: "max-width:240px" });
+  function add() {
+    if (!co.value.trim() || !role.value.trim()) return toast("Company and role, please");
+    state.apps.push({ id: uid(), company: co.value.trim(), role: role.value.trim(), status: "Saved", date: todayKey(), next: "Research + find a warm intro" });
+    co.value = role.value = ""; save(); render();
+  }
+  card.append(el("div", { class: "row mt" }, co, role, el("button", { class: "btn small primary", onclick: add }, "Track")));
+  card.append(el("div", { class: "pace-note" }, "⏱ Pace rule: two focused hours a day on the hunt, then close the laptop. " +
+    (active.length ? `${active.length} active thread${active.length > 1 ? "s" : ""} — follow up before adding more.` : "Sustainable beats heroic — that's the whole lesson.")));
+  return card;
 }
 
 /* ================= COUNCIL ================= */
@@ -695,14 +1014,153 @@ function viewCouncil(root) {
     el("h1", { class: "section-title" }, "Your council of five"),
     el("p", { class: "section-sub" }, "The five advisors who designed this program. Each speaks from a different chair; together they cover recovery, direction, discipline, systems, and lived experience. Their daily note appears on the Today tab.")
   );
-  COUNCIL.forEach(c => {
+  COUNCIL.forEach((c, i) => {
     root.append(el("div", { class: "card mt council-card" },
       el("div", { class: "avatar" }, c.avatar),
       el("div", {},
         el("h2", {}, c.name),
         el("div", { class: "role" }, c.role),
         el("p", { class: "philosophy" }, `“${c.philosophy}”`),
-        el("div", { class: "tip" }, "Today's advice: " + dailyPick(c.tips)))));
+        el("div", { class: "tip" }, "Today's advice: " + dailyPick(c.tips, i)))));
+  });
+}
+
+/* ================= REMINDERS ================= */
+const REMINDER_DEFS = [
+  { id: "checkin", name: "Evening check-in", sub: "Daily · energy, mood, three wins", freq: "daily",
+    body: "Two minutes: how was your energy today? Log it and your three wins." },
+  { id: "skill", name: "Skill session", sub: "Daily · protect the streak", freq: "daily",
+    body: "Skill session time — 45 focused minutes, then you're free." },
+  { id: "retro", name: "Sunday retro", sub: "Weekly · fifteen minutes to close the week", freq: "weekly-sunday",
+    body: "Sunday retro: the week in numbers, four questions, next week's focus." }
+];
+
+function nowHM() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+
+function viewReminders(root) {
+  root.append(
+    el("h1", { class: "section-title" }, "Reminders"),
+    el("p", { class: "section-sub" }, "Two channels: browser notifications fire at these times while Rekindle is open in a tab, and the calendar file gives you guaranteed reminders everywhere else — phone included.")
+  );
+  root.append(coachNote("priya", "A reminder is an anchor, not a nag. Pick times attached to things you already do — check-in after dinner, skill session after morning coffee — and let the calendar carry the memory."));
+
+  const card = el("div", { class: "card mt" }, el("h2", {}, "Schedule"));
+  REMINDER_DEFS.forEach(def => {
+    const r = state.reminders[def.id];
+    const sw = el("button", { class: "switch" + (r.on ? " on" : ""), role: "switch",
+      "aria-checked": String(r.on), "aria-label": def.name,
+      onclick: () => { r.on = !r.on; save(); render(); } });
+    const time = el("input", { type: "time", value: r.time });
+    time.addEventListener("change", () => { r.time = time.value || r.time; save(); });
+    card.append(el("div", { class: "reminder-row" },
+      sw,
+      el("div", { class: "r-name" }, el("b", {}, def.name), el("div", { class: "r-sub" }, def.sub)),
+      time));
+  });
+  root.append(card);
+
+  // browser notifications
+  const notifCard = el("div", { class: "card mt" },
+    el("h2", {}, "Browser notifications"),
+    el("p", { class: "sub" }, "Fire at the times above while the app is open in any tab. Keep Rekindle pinned and this covers most days."));
+  const perm = ("Notification" in window) ? Notification.permission : "unsupported";
+  if (perm === "granted") {
+    notifCard.append(el("p", { class: "notif-status ok" }, "✓ Notifications are enabled in this browser."));
+  } else if (perm === "denied") {
+    notifCard.append(el("p", { class: "notif-status" }, "Notifications are blocked for this site — re-enable them in your browser's site settings, or rely on the calendar file below."));
+  } else if (perm === "unsupported") {
+    notifCard.append(el("p", { class: "notif-status" }, "This browser doesn't support notifications — use the calendar file below."));
+  } else {
+    notifCard.append(el("button", { class: "btn primary", onclick: async () => {
+      await Notification.requestPermission();
+      render();
+    } }, "Enable browser notifications"));
+  }
+  root.append(notifCard);
+
+  // calendar file
+  const icsCard = el("div", { class: "card mt" },
+    el("h2", {}, "Calendar reminders (recommended)"),
+    el("p", { class: "sub" }, "Downloads a calendar file with your enabled reminders as recurring events with alerts. Open it and your calendar app (Google, Apple, Outlook) takes over — it reminds you even when Rekindle is closed."));
+  icsCard.append(el("button", { class: "btn primary", onclick: downloadIcs }, "⤓ Download calendar file (.ics)"));
+  root.append(icsCard);
+}
+
+function downloadIcs() {
+  const active = REMINDER_DEFS.filter(d => state.reminders[d.id].on);
+  if (!active.length) return toast("Turn on at least one reminder first");
+  const pad = n => String(n).padStart(2, "0");
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Rekindle//Burnout Recovery Coach//EN", "CALSCALE:GREGORIAN"];
+  active.forEach(def => {
+    const r = state.reminders[def.id];
+    const [hh, mm] = r.time.split(":").map(Number);
+    // first occurrence: today if the time is still ahead, else the next valid day
+    const start = new Date();
+    start.setHours(hh, mm, 0, 0);
+    // setDate keeps the local clock time across DST; +86400000ms would drift it
+    if (def.freq === "weekly-sunday") {
+      while (start.getDay() !== 0 || start.getTime() < Date.now()) start.setDate(start.getDate() + 1);
+    } else if (start.getTime() < Date.now()) {
+      start.setDate(start.getDate() + 1);
+    }
+    // floating local time on purpose: "20:30" should mean 20:30 wherever the user is
+    const dt = `${start.getFullYear()}${pad(start.getMonth() + 1)}${pad(start.getDate())}T${pad(hh)}${pad(mm)}00`;
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:rekindle-${def.id}@local`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${dt}`,
+      "DURATION:PT15M",
+      def.freq === "weekly-sunday" ? "RRULE:FREQ=WEEKLY;BYDAY=SU" : "RRULE:FREQ=DAILY",
+      `SUMMARY:${icsEscape(def.name + " — Rekindle")}`,
+      `DESCRIPTION:${icsEscape(def.body)}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEscape(def.name)}`, "TRIGGER:PT0S", "END:VALARM",
+      "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.map(icsFold).join("\r\n")], { type: "text/calendar" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "rekindle-reminders.ics";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Calendar file downloaded — open it to add the reminders.");
+}
+
+/* RFC 5545: commas/semicolons/backslashes in TEXT values must be escaped */
+function icsEscape(t) {
+  return String(t).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+/* RFC 5545: content lines fold at 75 octets — 60 chars keeps multibyte safe */
+function icsFold(line) {
+  const parts = [];
+  let s = line;
+  while (s.length > 60) { parts.push(s.slice(0, 60)); s = " " + s.slice(60); }
+  parts.push(s);
+  return parts.join("\r\n");
+}
+
+/* fires while the app is open; the calendar file covers everything else */
+function checkReminders() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const today = todayKey(), hm = nowHM();
+  REMINDER_DEFS.forEach(def => {
+    const r = state.reminders[def.id];
+    if (!r.on || state.lastFired[def.id] === today || hm < r.time) return;
+    if (def.freq === "weekly-sunday" && new Date().getDay() !== 0) return;
+    // skip if the thing is already done today
+    if (def.id === "checkin" && state.checkins[today]) return;
+    if (def.id === "skill" && state.skills.some(s => s.logs.some(l => l.date === today))) return;
+    const rt = (state.weekly[weekKey()] || {}).retro;
+    if (def.id === "retro" && rt && Object.values(rt).some(v => v && v.trim())) return;
+    state.lastFired[def.id] = today;
+    save();
+    const n = new Notification("Rekindle 🔥", { body: def.body });
+    n.onclick = () => { window.focus(); navigate(def.id === "retro" ? "retro" : "today"); };
   });
 }
 
@@ -712,13 +1170,16 @@ function initOnboarding() {
   const ob = $("#onboarding");
   ob.classList.remove("hidden");
   $("#obDate").value = todayKey();
-  $("#obStart").addEventListener("click", () => {
+  $("#obName").focus();
+  // onclick property, not addEventListener: reset re-runs onboarding, and
+  // stacked listeners would fire the handler once per reset
+  $("#obStart").onclick = () => {
     state.name = $("#obName").value.trim();
     state.startDate = $("#obDate").value || todayKey();
     save();
     ob.classList.add("hidden");
     render();
-  });
+  };
 }
 
 function initFooter() {
@@ -729,6 +1190,27 @@ function initFooter() {
     a.download = `rekindle-backup-${todayKey()}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+  });
+  $("#importBtn").addEventListener("click", () => $("#importFile").click());
+  $("#importFile").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data || typeof data !== "object" || !("checkins" in data))
+          throw new Error("not a Rekindle backup");
+        if (!confirm("Replace everything in this browser with the backup? Current data will be overwritten.")) return;
+        state = normalize(data);
+        save(); render(); toast("Backup restored.");
+      } catch (err) {
+        toast("That file doesn't look like a Rekindle backup.");
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(file);
   });
   $("#resetBtn").addEventListener("click", () => {
     if (confirm("Erase ALL data and start over? Export a backup first if in doubt.")) {
@@ -744,7 +1226,14 @@ function initFooter() {
 /* ---------------- boot ---------------- */
 document.querySelectorAll(".tab").forEach(t =>
   t.addEventListener("click", () => navigate(t.dataset.view)));
+$("#bellBtn").addEventListener("click", () => navigate("reminders"));
 window.addEventListener("hashchange", render);
 initFooter();
 initOnboarding();
 render();
+checkReminders();
+setInterval(checkReminders, 30000);
+// keep multiple open tabs consistent instead of silently last-write-wins
+window.addEventListener("storage", e => {
+  if (e.key === STORE_KEY) { state = load(); render(); }
+});

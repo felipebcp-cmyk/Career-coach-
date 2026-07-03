@@ -66,13 +66,13 @@ const COUNCIL = [
 
 /* ---------- 12-week program ---------- */
 const PHASES = [
-  { id: "recover",  name: "Recover",  weeks: [1, 2, 3],    color: "recover",
+  { id: "recover",  name: "Recover",  weeks: [1, 2, 3],
     tagline: "Rest and repair. No job hunting. Your only job is to refill the tank." },
-  { id: "reflect",  name: "Reflect",  weeks: [4, 5, 6],    color: "reflect",
+  { id: "reflect",  name: "Reflect",  weeks: [4, 5, 6],
     tagline: "Understand what happened and what you actually want next." },
-  { id: "rebuild",  name: "Rebuild",  weeks: [7, 8, 9],    color: "rebuild",
+  { id: "rebuild",  name: "Rebuild",  weeks: [7, 8, 9],
     tagline: "Grow skills, reconnect with people, explore options with curiosity." },
-  { id: "relaunch", name: "Relaunch", weeks: [10, 11, 12], color: "relaunch",
+  { id: "relaunch", name: "Relaunch", weeks: [10, 11, 12],
     tagline: "Targeted search, sharp story, sustainable pace. Land the right role, not just a role." }
 ];
 
@@ -235,6 +235,27 @@ const DISTORTIONS = [
   { name: "Labeling", example: "\"I'm a quitter.\"" },
   { name: "Should statements", example: "\"I should be over this by now.\"" }
 ];
+
+/* ---------- launch toolkit ---------- */
+const APP_STATUSES = ["Saved", "Applied", "Interviewing", "Offer", "Closed"];
+
+const STAR_FIELDS = [
+  { id: "situation", label: "Situation", hint: "Set the scene in one or two sentences. Where, when, what was at stake?" },
+  { id: "task", label: "Task", hint: "What were YOU responsible for? Not the team — you." },
+  { id: "action", label: "Action", hint: "The 2–3 concrete things you did. Verbs, decisions, trade-offs." },
+  { id: "result", label: "Result", hint: "The outcome, with a number if you have one. Then one sentence on what it says about you." }
+];
+
+const STORY_PROMPTS = [
+  "A time you performed under real pressure",
+  "A time you caught an error nobody else saw",
+  "A time you influenced someone senior to change course",
+  "A time you delivered with incomplete information",
+  "A time you failed, and what you changed after",
+  "A time you led without authority"
+];
+
+const BREAK_STORY_GUIDE = "Say it in three beats, with a straight back: (1) “I took a deliberate break after an intense run in finance.” (2) “I used it to rebuild and retrain — [your skill bets].” (3) “I'm now targeting [direction] because [one values-based reason].” No apology, no over-explaining. Rehearse it out loud until it's boring to you.";
 
 /* ---------- daily coach notes, keyed by phase ---------- */
 const PHASE_NOTES = {

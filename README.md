@@ -20,6 +20,10 @@ python3 -m http.server 8080
 # then visit http://localhost:8080
 ```
 
+Note: everything works from `file://` except browser notifications, which most
+browsers only allow on `http(s)` origins — use option 2 (or the hosted version) if
+you want the reminder notifications. The `.ics` calendar reminders work either way.
+
 ## How the app was decided — the Council of 5
 
 Five advisors deliberated on what this specific human needs. Their positions shaped the
@@ -39,7 +43,9 @@ discipline tooling gated to the right phase.
 ## What's inside
 
 - **Today** — daily energy/mood check-in, today's habits with streaks, quick wins log,
-  weekly focus and top-3 priorities, a coach note matched to your current phase.
+  weekly focus and top-3 priorities, a coach note matched to your current phase. The
+  12-week clock starts the day you begin the program — not the day you quit — so rest
+  comes first no matter how long ago you left.
 - **Program** — the 12-week roadmap (Recover → Reflect → Rebuild → Relaunch) with weekly
   focus and tasks, plus your energy trend chart.
 - **Reflect** — three guided journeys: *Why Finance in the First Place?*, *Burnout
@@ -51,10 +57,23 @@ discipline tooling gated to the right phase.
   concrete options.
 - **Skills** — pick skill tracks (data, storytelling, product/strategy, modern finance,
   AI literacy…), set weekly hour targets, log sessions.
+- **Launch** — the transition toolkit: rehearse your break story, build STAR interview
+  stories from the evidence bank, and track applications with a sustainable-pace rule
+  (two focused hours a day, then close the laptop).
+- **Weekly retro** — a Sunday ritual reached from the Today tab: the week in numbers
+  (average energy, habits kept, wins, skill hours), four reflection questions, and a
+  printable review sheet. Next week's focus carries forward automatically.
 - **Council** — the five advisors, their philosophies, and rotating advice.
+- **Reminders** (🔔 in the top bar) — evening check-in, skill session, and Sunday retro
+  reminders on two channels: browser notifications while the app is open in a tab, and
+  a downloadable `.ics` calendar file with recurring alarmed events so your phone or
+  calendar reminds you even when the app is closed. A gentle in-app nudge appears on
+  the Today tab when the check-in time has passed.
 
 ## Tech
 
 Vanilla HTML/CSS/JS, no build step, no dependencies. State lives under one
-`localStorage` key (`rekindle.v1`). The energy chart is hand-rolled SVG following
+`localStorage` key (`rekindle.v1`), with JSON export/import for backups. Backups are
+sanitized on import; note that browser notification permission doesn't travel with a
+backup — re-enable it once on a new machine (🔔 → Reminders). The energy chart is hand-rolled SVG following
 accessible data-viz specs (single series, direct labels, hover tooltips).
