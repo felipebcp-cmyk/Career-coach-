@@ -1,0 +1,5 @@
+node_modules/
+lms/*.sqlite
+lms/*.sqlite-wal
+lms/*.sqlite-shm
+*.log

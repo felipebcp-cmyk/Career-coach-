@@ -18,7 +18,10 @@
         <div class="brand-sub">a 7-week course · from scorekeeper to trusted advisor</div>
       </div>
     </div>
-    <div class="progress-pill" id="progressPill"></div>
+    <div class="topbar-right">
+      <div class="account" id="accountBox"></div>
+      <div class="progress-pill" id="progressPill"></div>
+    </div>
   </div>
   <nav class="tabs" id="tabs">
     <button class="tab" data-view="dashboard">Dashboard</button>
@@ -54,6 +57,38 @@
       <input type="text" id="obName" placeholder="Your full name" maxlength="60">
     </label>
     <button class="btn primary" id="obStart">Start Week 1</button>
+    <p class="small hidden" id="obAuthRow" style="margin-top:12px">
+      <button class="linklike" id="obAuth">Have an account, or want progress saved across devices? Sign in / Register</button>
+    </p>
+  </div>
+</div>
+
+<!-- Sign in / register (only shown when the app is served by the LMS) -->
+<div class="modal-backdrop hidden" id="authModal">
+  <div class="modal">
+    <h2 id="authTitle">Sign in</h2>
+    <p id="authBlurb">Your progress is saved to your account and follows you across devices.
+    Certificates earned while signed in get a verification code.</p>
+    <label class="field hidden" id="authNameField">
+      <span>Your name (it goes on the certificate)</span>
+      <input type="text" id="authName" maxlength="80" autocomplete="name">
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" id="authEmail" autocomplete="email">
+    </label>
+    <label class="field">
+      <span>Password <span id="authPassHint" class="hidden">(8+ characters)</span></span>
+      <input type="password" id="authPass" autocomplete="current-password">
+    </label>
+    <p class="auth-error hidden" id="authError"></p>
+    <div class="row-buttons">
+      <button class="btn primary" id="authSubmit">Sign in</button>
+      <button class="btn" id="authCancel">Cancel</button>
+    </div>
+    <p class="small" style="margin-top:12px">
+      <button class="linklike" id="authToggle">New here? Create an account</button>
+    </p>
   </div>
 </div>
 

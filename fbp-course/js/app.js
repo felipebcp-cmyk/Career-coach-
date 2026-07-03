@@ -70,6 +70,134 @@
   function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
     renderProgressPill();
+    scheduleSync();
+  }
+
+  /* ---------- LMS session & sync (active only when served by lms/server.js) ---------- */
+
+  let lmsAvailable = false;
+  let session = null;      // {name, email, admin} when signed in
+  let certInfo = null;     // {code, issuedAt, verifyPath} once issued
+  let syncTimer = null;
+
+  async function apiFetch(url, opts) {
+    try {
+      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opts));
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { return null; }
+  }
+
+  function scheduleSync() {
+    if (!session) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushProgress, 600);
+  }
+
+  async function pushProgress() {
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    const res = await apiFetch("/api/progress", { method: "PUT", body: JSON.stringify(state) });
+    if (res && res.certificate && !certInfo) {
+      certInfo = res.certificate;
+      if (view === "certificate") render();
+    }
+  }
+
+  // flush pending progress when the tab is hidden or closed
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && session && syncTimer) {
+      navigator.sendBeacon("/api/progress",
+        new Blob([JSON.stringify(state)], { type: "application/json" }));
+      clearTimeout(syncTimer);
+      syncTimer = null;
+    }
+  });
+
+  function renderAccountBox() {
+    const box = $("#accountBox");
+    if (!lmsAvailable) { box.innerHTML = ""; return; }
+    if (session) {
+      box.innerHTML = `
+        <span class="account-name" title="${esc(session.email)}">${esc(session.name)}</span>
+        ${session.admin ? `<a class="account-link" href="/admin">Admin</a>` : ""}
+        <button class="account-link" id="signOutBtn">Sign out</button>`;
+      $("#signOutBtn").addEventListener("click", async () => {
+        await pushProgress();
+        await apiFetch("/api/logout", { method: "POST" });
+        location.reload();
+      });
+    } else {
+      box.innerHTML = `<button class="account-link" id="signInBtn">Sign in / Register</button>`;
+      $("#signInBtn").addEventListener("click", () => openAuthModal("login"));
+    }
+  }
+
+  let authMode = "login";
+  function openAuthModal(mode) {
+    authMode = mode;
+    $("#authTitle").textContent = mode === "login" ? "Sign in" : "Create your account";
+    $("#authSubmit").textContent = mode === "login" ? "Sign in" : "Register";
+    $("#authToggle").textContent = mode === "login"
+      ? "New here? Create an account" : "Already registered? Sign in";
+    $("#authNameField").classList.toggle("hidden", mode === "login");
+    $("#authPassHint").classList.toggle("hidden", mode === "login");
+    $("#authError").classList.add("hidden");
+    $("#authModal").classList.remove("hidden");
+    $(mode === "login" ? "#authEmail" : "#authName").focus();
+  }
+
+  function wireAuthModal() {
+    $("#authToggle").addEventListener("click", () =>
+      openAuthModal(authMode === "login" ? "register" : "login"));
+    $("#authCancel").addEventListener("click", () => {
+      $("#authModal").classList.add("hidden");
+      // if they backed out before onboarding, put the onboarding modal back
+      if (!state.startedAt && !session) $("#onboarding").classList.remove("hidden");
+    });
+    $("#authSubmit").addEventListener("click", submitAuth);
+    ["#authEmail", "#authPass", "#authName"].forEach(sel =>
+      $(sel).addEventListener("keydown", e => { if (e.key === "Enter") submitAuth(); }));
+  }
+
+  async function submitAuth() {
+    const body = {
+      name: $("#authName").value.trim(),
+      email: $("#authEmail").value.trim(),
+      password: $("#authPass").value
+    };
+    let r;
+    try {
+      r = await fetch(authMode === "login" ? "/api/login" : "/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+    } catch (e) { r = null; }
+    if (r && r.ok) { location.reload(); return; }
+    const err = $("#authError");
+    err.textContent = r ? ((await r.json()).error || "Something went wrong.") : "Can't reach the server.";
+    err.classList.remove("hidden");
+  }
+
+  async function initLms() {
+    lmsAvailable = !!(await apiFetch("/api/health"));
+    if (!lmsAvailable) return;             // static/guest mode — app works as before
+    session = await apiFetch("/api/me");
+    if (!session) return;
+    const server = await apiFetch("/api/progress");
+    if (server && server.data) {
+      state = sanitizeState(server.data);  // the account is the source of truth
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    } else if (state.startedAt) {
+      await pushProgress();                // migrate this browser's guest progress up
+    }
+    certInfo = await apiFetch("/api/certificate");
+    if (!state.startedAt) {                // signed-in users skip the onboarding modal
+      state.name = session.name;
+      state.startedAt = new Date().toISOString();
+      save();
+    }
   }
 
   /* ---------- derived progress ---------- */
@@ -672,6 +800,13 @@
           <div class="cert-date">Completed ${esc(date)}</div>
         </div>
       </section>
+      ${certInfo ? `
+      <p class="cert-verify">Verification code <strong class="cert-code">${esc(certInfo.code)}</strong>
+      — anyone can confirm this certificate at
+      <a href="${esc(certInfo.verifyPath || "/verify/" + certInfo.code)}">${esc(location.origin + (certInfo.verifyPath || "/verify/" + certInfo.code))}</a></p>`
+      : (lmsAvailable && !session ? `
+      <p class="cert-verify muted small">Sign in to attach this certificate to an account and get a
+      public verification code.</p>` : "")}
       <div class="cert-actions">
         <button class="btn primary" id="printBtn">Print / save as PDF</button>
         <button class="btn" id="nameBtn">Change name</button>
@@ -695,9 +830,19 @@
 
   /* ---------- onboarding, footer ---------- */
 
-  function boot() {
+  async function boot() {
+    wireAuthModal();
+    await initLms();
+    renderAccountBox();
     if (!state.startedAt) {
       $("#onboarding").classList.remove("hidden");
+      if (lmsAvailable) {
+        $("#obAuthRow").classList.remove("hidden");
+        $("#obAuth").addEventListener("click", () => {
+          $("#onboarding").classList.add("hidden");
+          openAuthModal("login");
+        });
+      }
       $("#obStart").addEventListener("click", () => {
         state.name = $("#obName").value.trim() || "Course Participant";
         state.startedAt = new Date().toISOString();
@@ -734,12 +879,19 @@
       };
       reader.readAsText(file);
     });
-    $("#resetBtn").addEventListener("click", () => {
-      if (confirm("Reset all course progress? This cannot be undone.")) {
-        localStorage.removeItem(STORE_KEY);
-        state = defaultState();
-        location.reload();
+    $("#resetBtn").addEventListener("click", async () => {
+      const msg = session
+        ? "Reset all course progress, on this device AND on your account? This cannot be undone."
+        : "Reset all course progress? This cannot be undone.";
+      if (!confirm(msg)) return;
+      localStorage.removeItem(STORE_KEY);
+      state = defaultState();
+      if (session) {
+        state.name = session.name;
+        state.startedAt = new Date().toISOString();
+        await apiFetch("/api/progress", { method: "PUT", body: JSON.stringify(state) });
       }
+      location.reload();
     });
 
     if (!location.hash) history.replaceState(null, "", "#dashboard");

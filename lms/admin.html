@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMS Admin — Students</title>
+<style>
+  :root { --ink: #1c2733; --muted: #5b6b7c; --line: #dfe6ee; --brand: #0e5a6d; --good: #1c7a4d; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: system-ui, sans-serif; background: #f4f6f9; color: var(--ink); padding: 32px 20px; }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meter { width: 110px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; display: inline-block; vertical-align: middle; }
+  .meter i { display: block; height: 100%; background: var(--brand); }
+  .pct { font-size: 12.5px; color: var(--muted); margin-left: 8px; }
+  .cert { color: var(--good); font-weight: 600; }
+  .code { font-family: ui-monospace, monospace; background: #f4f6f9; padding: 1px 6px; border-radius: 5px; }
+  .muted { color: var(--muted); }
+  a { color: var(--brand); }
+  .stats { display: flex; gap: 28px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat b { font-size: 24px; display: block; color: var(--brand); }
+  .stat span { font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Students</h1>
+  <p class="sub">Progress across the course · <a href="/">back to the course</a></p>
+  <div class="stats" id="stats"></div>
+  <div class="card"><table id="tbl">
+    <thead><tr>
+      <th>Name</th><th>Email</th><th>Progress</th><th>Lessons</th><th>Workshops</th>
+      <th>Quizzes</th><th>Final</th><th>Certificate</th><th>Last active</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+</div>
+<script>
+(async () => {
+  const r = await fetch("/api/admin/students");
+  if (!r.ok) { document.body.textContent = "Not authorised."; return; }
+  const { students } = await r.json();
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmt = iso => iso ? new Date(iso).toLocaleDateString() : "—";
+
+  const certified = students.filter(s => s.certificate).length;
+  const active = students.filter(s => s.lastActive).length;
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><b>${students.length}</b><span>registered</span></div>
+    <div class="stat"><b>${active}</b><span>started</span></div>
+    <div class="stat"><b>${certified}</b><span>certified</span></div>`;
+
+  document.querySelector("#tbl tbody").innerHTML = students.map(s => `
+    <tr>
+      <td>${esc(s.name)}</td>
+      <td class="muted">${esc(s.email)}</td>
+      <td><span class="meter"><i style="width:${s.progressPct}%"></i></span><span class="pct">${s.progressPct}%</span></td>
+      <td>${esc(s.lessons)}</td>
+      <td>${esc(s.workshops)}</td>
+      <td>${esc(s.quizzesPassed)}</td>
+      <td>${s.finalPassed ? "✓" : "—"}</td>
+      <td>${s.certificate
+        ? `<span class="cert">✓</span> <a href="/verify/${esc(s.certificate.code)}"><span class="code">${esc(s.certificate.code)}</span></a>`
+        : `<span class="muted">—</span>`}</td>
+      <td class="muted">${fmt(s.lastActive)}</td>
+    </tr>`).join("");
+})();
+</script>
+</body>
+</html>

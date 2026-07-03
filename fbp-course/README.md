@@ -5,8 +5,14 @@ professionals who want to move from technical contributor to trusted advisor —
 shaping decisions instead of just reporting on them. All lesson content,
 exercises and assessments are written for this app.
 
-**No accounts. No server.** Progress lives in the browser's `localStorage`
-(`fbpcourse.v1`). Open `index.html` and start.
+Runs in two modes:
+
+- **Guest mode (no accounts, no server):** open `index.html` and progress
+  lives in the browser's `localStorage` (`fbpcourse.v1`).
+- **LMS mode:** serve it with [`../lms/server.js`](../lms/README.md) to get
+  user accounts, cross-device progress sync, auto-issued certificates with
+  public verification codes, and an admin dashboard. The app detects the LMS
+  automatically; guest progress migrates to the account on first sign-in.
 
 ## Run it
 
