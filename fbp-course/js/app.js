@@ -133,50 +133,89 @@
     }
   }
 
-  let authMode = "login";
+  let authMode = "login"; // login | register | reset
   function openAuthModal(mode) {
     authMode = mode;
-    $("#authTitle").textContent = mode === "login" ? "Sign in" : "Create your account";
-    $("#authSubmit").textContent = mode === "login" ? "Sign in" : "Register";
+    $("#authTitle").textContent =
+      mode === "login" ? "Sign in" : mode === "register" ? "Create your account" : "Reset your password";
+    $("#authBlurb").textContent = mode === "reset"
+      ? "Enter your email and request a code, then ask your course admin for it — it appears on their dashboard."
+      : "Your progress is saved to your account and follows you across devices. Certificates earned while signed in get a verification code.";
+    $("#authSubmit").textContent =
+      mode === "login" ? "Sign in" : mode === "register" ? "Register" : "Request a reset code";
     $("#authToggle").textContent = mode === "login"
       ? "New here? Create an account" : "Already registered? Sign in";
-    $("#authNameField").classList.toggle("hidden", mode === "login");
+    $("#authNameField").classList.toggle("hidden", mode !== "register");
+    $("#authCodeField").classList.add("hidden");
+    $("#authPass").parentElement.classList.toggle("hidden", mode === "reset");
+    $("#authPassLabel").firstChild.textContent = mode === "reset" ? "New password " : "Password ";
     $("#authPassHint").classList.toggle("hidden", mode === "login");
+    $("#authPass").setAttribute("autocomplete", mode === "login" ? "current-password" : "new-password");
+    $("#authForgot").classList.toggle("hidden", mode !== "login");
     $("#authError").classList.add("hidden");
+    $("#authInfo").classList.add("hidden");
+    $("#authCode").value = "";
     $("#authModal").classList.remove("hidden");
-    $(mode === "login" ? "#authEmail" : "#authName").focus();
+    $(mode === "register" ? "#authName" : "#authEmail").focus();
   }
 
   function wireAuthModal() {
     $("#authToggle").addEventListener("click", () =>
       openAuthModal(authMode === "login" ? "register" : "login"));
+    $("#authForgot").addEventListener("click", () => openAuthModal("reset"));
     $("#authCancel").addEventListener("click", () => {
       $("#authModal").classList.add("hidden");
       // if they backed out before onboarding, put the onboarding modal back
       if (!state.startedAt && !session) $("#onboarding").classList.remove("hidden");
     });
     $("#authSubmit").addEventListener("click", submitAuth);
-    ["#authEmail", "#authPass", "#authName"].forEach(sel =>
+    ["#authEmail", "#authPass", "#authName", "#authCode"].forEach(sel =>
       $(sel).addEventListener("keydown", e => { if (e.key === "Enter") submitAuth(); }));
   }
 
+  function authFail(r, fallback) {
+    return r ? r.json().then(j => j.error || fallback).catch(() => fallback)
+             : Promise.resolve("Can't reach the server.");
+  }
+
   async function submitAuth() {
-    const body = {
-      name: $("#authName").value.trim(),
-      email: $("#authEmail").value.trim(),
-      password: $("#authPass").value
-    };
-    let r;
-    try {
-      r = await fetch(authMode === "login" ? "/api/login" : "/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-    } catch (e) { r = null; }
+    const err = $("#authError"), info = $("#authInfo");
+    err.classList.add("hidden");
+    const email = $("#authEmail").value.trim();
+    const post = (url, body) => fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }).catch(() => null);
+
+    if (authMode === "reset") {
+      const code = $("#authCode").value.trim();
+      const codeVisible = !$("#authCodeField").classList.contains("hidden");
+      if (!codeVisible) {
+        // step 1: request a code, then reveal the code + new-password fields
+        const r = await post("/api/request-reset", { email });
+        if (!r || !r.ok) { err.textContent = await authFail(r, "Couldn't request a reset."); err.classList.remove("hidden"); return; }
+        $("#authCodeField").classList.remove("hidden");
+        $("#authPass").parentElement.classList.remove("hidden");
+        $("#authPass").value = "";
+        $("#authSubmit").textContent = "Set new password";
+        info.textContent = "Code requested. Ask your course admin for it, then enter it above with a new password.";
+        info.classList.remove("hidden");
+        $("#authCode").focus();
+        return;
+      }
+      // step 2: redeem the code
+      const r = await post("/api/reset-password", { email, code, password: $("#authPass").value });
+      if (r && r.ok) { location.reload(); return; }
+      err.textContent = await authFail(r, "Reset failed.");
+      err.classList.remove("hidden");
+      return;
+    }
+
+    const body = { name: $("#authName").value.trim(), email, password: $("#authPass").value };
+    const r = await post(authMode === "login" ? "/api/login" : "/api/register", body);
     if (r && r.ok) { location.reload(); return; }
-    const err = $("#authError");
-    err.textContent = r ? ((await r.json()).error || "Something went wrong.") : "Can't reach the server.";
+    err.textContent = await authFail(r, "Something went wrong.");
     err.classList.remove("hidden");
   }
 

@@ -153,6 +153,33 @@ async function main() {
     });
     ok(badBody.status === 400, "malformed JSON is a 400, not a crash");
 
+    // ---- password reset flow ----
+    const rUnknown = await req("POST", "/api/request-reset", { body: { email: "nobody@example.com" } });
+    ok(rUnknown.status === 200, "reset request for unknown email is a silent 200 (no enumeration)");
+    ok((await req("GET", "/api/admin/resets", { cookie: aliceC })).json.resets.length === 0, "no reset codes for unknown accounts");
+
+    ok((await req("POST", "/api/request-reset", { body: { email: "bob@example.com" } })).status === 200, "reset request accepted");
+    ok((await req("GET", "/api/admin/resets", { cookie: bobC })).status === 403, "non-admin can't read reset codes");
+    const resets = await req("GET", "/api/admin/resets", { cookie: aliceC });
+    ok(resets.status === 200 && resets.json.resets.length === 1 && resets.json.resets[0].email === "bob@example.com", "admin sees the pending reset code");
+    const resetCode = resets.json.resets[0].code;
+
+    ok((await req("POST", "/api/reset-password", { body: { email: "bob@example.com", code: "WRONGCODE", password: "new-password-9" } })).status === 400, "wrong reset code rejected");
+    ok((await req("POST", "/api/reset-password", { body: { email: "bob@example.com", code: resetCode, password: "short" } })).status === 400, "short new password rejected (code not burned)");
+    const resetOk = await req("POST", "/api/reset-password", { body: { email: "bob@example.com", code: resetCode, password: "new-password-9" } });
+    ok(resetOk.status === 200 && resetOk.cookie, "valid code resets the password and signs in");
+    ok((await req("POST", "/api/reset-password", { body: { email: "bob@example.com", code: resetCode, password: "another-pass-9" } })).status === 400, "reset code is single-use");
+    ok((await req("POST", "/api/login", { body: { email: "bob@example.com", password: "password-2" } })).status === 401, "old password no longer works");
+    ok((await req("POST", "/api/login", { body: { email: "bob@example.com", password: "new-password-9" } })).status === 200, "new password works");
+    ok((await req("GET", "/api/admin/resets", { cookie: aliceC })).json.resets.length === 0, "used code disappears from the admin list");
+
+    // ---- login rate limiting (fresh email so counts don't interfere) ----
+    let last;
+    for (let i = 0; i < 11; i++) {
+      last = await req("POST", "/api/login", { body: { email: "hammer@example.com", password: "x".repeat(8) } });
+    }
+    ok(last.status === 429, "login rate limit kicks in after repeated attempts");
+
     console.log(`\nALL ${passed} API CHECKS PASSED`);
   } finally {
     server.kill();

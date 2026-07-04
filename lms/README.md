@@ -57,7 +57,10 @@ platform.
 | `PUT /api/progress`        | cookie | Save state; auto-issues certificate on completion |
 | `GET /api/certificate`     | cookie | Your certificate code + verify path      |
 | `GET /verify/<code>`       | —      | Public verification page                 |
+| `POST /api/request-reset`  | —      | Create a password-reset code (admin hands it over) |
+| `POST /api/reset-password` | —      | Redeem code + set new password (signs in) |
 | `GET /api/admin/students`  | admin  | All students with progress summaries     |
+| `GET /api/admin/resets`    | admin  | Pending password-reset codes             |
 
 ## Tests
 
@@ -66,11 +69,26 @@ node lms/test/api.test.js    # 34 checks: auth, sessions, progress, certificates
 node lms/test/e2e-lms.js     # browser: register, sync, cross-device persistence (needs playwright)
 ```
 
+## Password resets (no email server needed)
+
+“Forgot password?” on the sign-in modal creates a one-hour, single-use reset
+code. The code appears on the **admin dashboard**; the admin hands it to the
+learner out-of-band (chat, phone, in person), and the learner redeems it with
+a new password. Unknown emails get the same response as real ones, so
+accounts can't be enumerated. Wire up SMTP later if you want codes emailed
+automatically.
+
+## Rate limits
+
+Login: 10 attempts / 15 min per IP+email · Registration: 20/hour per IP ·
+Reset requests and redemptions: 10/hour and 10/15 min per IP. All in-memory
+(reset on server restart).
+
 ## Honest limitations (v1)
 
-- No password reset or email verification — an admin can't recover accounts
-  yet; keep the SQLite file backed up.
-- No rate limiting on login attempts.
+- No email sending — password-reset codes are relayed by the admin (see above).
+- Sessions are stateless signed cookies: logout clears the browser's cookie
+  but can't revoke a stolen token before it expires.
 - Quizzes are still scored client-side and synced, so the certificate attests
   completion of an open-book course, not proctored mastery (same as every
   self-serve LMS without proctoring).

@@ -93,6 +93,25 @@ async function main() {
     await page.waitForSelector("#authError:not(.hidden)");
     console.log("✓ wrong password surfaces an error");
 
+    // Forgot-password: request a code, read it off the admin API, redeem it.
+    await page.click("#authForgot");
+    await page.fill("#authEmail", "casey@example.com");
+    await page.click("#authSubmit"); // step 1: request the code
+    await page.waitForSelector("#authInfo:not(.hidden)");
+    // Casey is the first (admin) user in this test DB — fetch the code via the API
+    const login = await fetch(BASE + "/api/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "casey@example.com", password: "learning-101" })
+    });
+    const adminCookie = (login.headers.get("set-cookie") || "").split(";")[0];
+    const resets = await (await fetch(BASE + "/api/admin/resets", { headers: { Cookie: adminCookie } })).json();
+    if (!resets.resets.length) throw new Error("no pending reset code");
+    await page.fill("#authCode", resets.resets[0].code);
+    await page.fill("#authPass", "brand-new-pass-1");
+    await page.click("#authSubmit"); // step 2: set the new password
+    await page.waitForSelector(".account-name");
+    console.log("✓ forgot-password flow: code requested, redeemed, signed in");
+
     if (errors.length) { console.log("ERRORS:", errors); process.exit(1); }
     console.log("\nALL LMS E2E CHECKS PASSED");
   } finally {

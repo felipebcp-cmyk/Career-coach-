@@ -32,6 +32,13 @@
   <h1>Students</h1>
   <p class="sub">Progress across the course · <a href="/">back to the course</a></p>
   <div class="stats" id="stats"></div>
+  <div class="card" id="resetsCard" style="display:none; margin-bottom:18px">
+    <h2 style="font-size:16px; margin-bottom:4px">Password reset requests</h2>
+    <p class="sub" style="margin-bottom:8px">Give the learner their code out-of-band (chat, phone, in person).
+    They enter it under “Forgot password?” on the sign-in screen. Codes expire after an hour.</p>
+    <table><thead><tr><th>Name</th><th>Email</th><th>Code</th><th>Expires</th></tr></thead>
+    <tbody id="resetsBody"></tbody></table>
+  </div>
   <div class="card"><table id="tbl">
     <thead><tr>
       <th>Name</th><th>Email</th><th>Progress</th><th>Lessons</th><th>Workshops</th>
@@ -48,6 +55,18 @@
   const esc = s => String(s).replace(/[&<>"']/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = iso => iso ? new Date(iso).toLocaleDateString() : "—";
+
+  const rr = await fetch("/api/admin/resets");
+  if (rr.ok) {
+    const { resets } = await rr.json();
+    if (resets.length) {
+      document.getElementById("resetsCard").style.display = "";
+      document.getElementById("resetsBody").innerHTML = resets.map(x => `
+        <tr><td>${esc(x.name)}</td><td class="muted">${esc(x.email)}</td>
+        <td><span class="code">${esc(x.code)}</span></td>
+        <td class="muted">${new Date(x.expires_at).toLocaleTimeString()}</td></tr>`).join("");
+    }
+  }
 
   const certified = students.filter(s => s.certificate).length;
   const active = students.filter(s => s.lastActive).length;

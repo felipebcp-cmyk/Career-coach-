@@ -87,6 +87,14 @@ db.exec(`
     code TEXT NOT NULL UNIQUE,
     issued_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS reset_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    code TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER NOT NULL DEFAULT 0
+  );
 `);
 
 const SECRET = (() => {
@@ -96,6 +104,22 @@ const SECRET = (() => {
   db.prepare("INSERT INTO meta (k, v) VALUES ('secret', ?)").run(v);
   return Buffer.from(v, "hex");
 })();
+
+/* ---------- rate limiting (in-memory, per key) ---------- */
+
+const rateBuckets = new Map();
+function rateLimited(key, max, windowMs) {
+  const now = Date.now();
+  const hits = (rateBuckets.get(key) || []).filter(t => now - t < windowMs);
+  hits.push(now);
+  rateBuckets.set(key, hits);
+  if (rateBuckets.size > 10000) rateBuckets.clear(); // crude memory bound
+  return hits.length > max;
+}
+function clientIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  return fwd ? String(fwd).split(",")[0].trim() : (req.socket.remoteAddress || "?");
+}
 
 /* ---------- auth ---------- */
 
@@ -195,6 +219,9 @@ const routes = {
   },
 
   "POST /api/register": async (req, res) => {
+    if (rateLimited("reg:" + clientIp(req), 20, 3600000)) {
+      return sendJson(res, 429, { error: "Too many sign-ups from this address — try again later." });
+    }
     const body = await readJsonBody(req);
     const name = String(body.name || "").trim().slice(0, 80);
     const email = String(body.email || "").trim().toLowerCase().slice(0, 200);
@@ -219,6 +246,9 @@ const routes = {
     const body = await readJsonBody(req);
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "");
+    if (rateLimited(`login:${clientIp(req)}:${email}`, 10, 900000)) {
+      return sendJson(res, 429, { error: "Too many attempts — wait 15 minutes and try again." });
+    }
     const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
     const bad = () => sendJson(res, 401, { error: "Wrong email or password." });
     if (!user) return bad();
@@ -231,6 +261,55 @@ const routes = {
 
   "POST /api/logout": (req, res) => {
     sendJson(res, 200, { ok: true }, { "Set-Cookie": sessionCookie("gone", 0) });
+  },
+
+  /* Password reset without email infrastructure: the learner requests a code,
+     the admin reads it off the dashboard and hands it over out-of-band, and
+     the learner sets a new password with it. Codes last an hour, single use. */
+  "POST /api/request-reset": async (req, res) => {
+    if (rateLimited("reset:" + clientIp(req), 10, 3600000)) {
+      return sendJson(res, 429, { error: "Too many reset requests — try again later." });
+    }
+    const body = await readJsonBody(req);
+    const email = String(body.email || "").trim().toLowerCase();
+    const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    if (user) {
+      db.prepare("UPDATE reset_requests SET used = 1 WHERE user_id = ?").run(user.id);
+      const code = crypto.randomBytes(4).toString("hex").toUpperCase();
+      db.prepare(
+        "INSERT INTO reset_requests (user_id, code, created_at, expires_at) VALUES (?, ?, ?, ?)"
+      ).run(user.id, code, new Date().toISOString(), new Date(Date.now() + 3600000).toISOString());
+    }
+    // same response whether or not the account exists — no email enumeration
+    sendJson(res, 200, { ok: true, message: "If that account exists, a reset code was created. Ask your course admin for it." });
+  },
+
+  "POST /api/reset-password": async (req, res) => {
+    if (rateLimited("resetpw:" + clientIp(req), 10, 900000)) {
+      return sendJson(res, 429, { error: "Too many attempts — wait 15 minutes and try again." });
+    }
+    const body = await readJsonBody(req);
+    const email = String(body.email || "").trim().toLowerCase();
+    const code = String(body.code || "").trim().toUpperCase();
+    const password = String(body.password || "");
+    if (password.length < 8) return sendJson(res, 400, { error: "Password must be at least 8 characters." });
+    const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    const bad = () => sendJson(res, 400, { error: "That code isn't valid (or has expired)." });
+    if (!user || !code) return bad();
+    const reqRow = db.prepare(`
+      SELECT id, code FROM reset_requests
+      WHERE user_id = ? AND used = 0 AND expires_at > ?
+      ORDER BY id DESC LIMIT 1
+    `).get(user.id, new Date().toISOString());
+    if (!reqRow) return bad();
+    const a = Buffer.from(reqRow.code), b = Buffer.from(code.padEnd(a.length).slice(0, a.length));
+    if (!crypto.timingSafeEqual(a, b)) return bad();
+    const salt = crypto.randomBytes(16).toString("hex");
+    db.prepare("UPDATE users SET salt = ?, hash = ? WHERE id = ?")
+      .run(salt, hashPassword(password, salt), user.id);
+    db.prepare("UPDATE reset_requests SET used = 1 WHERE id = ?").run(reqRow.id);
+    sendJson(res, 200, { ok: true },
+      { "Set-Cookie": sessionCookie(makeSession(user.id), SESSION_DAYS * 86400) });
   },
 
   "GET /api/me": (req, res, user) => {
@@ -264,6 +343,18 @@ const routes = {
     const row = db.prepare("SELECT code, issued_at FROM certificates WHERE user_id = ?").get(user.id);
     if (!row) return sendJson(res, 404, { error: "No certificate issued yet." });
     sendJson(res, 200, { code: row.code, issuedAt: row.issued_at, verifyPath: "/verify/" + row.code });
+  },
+
+  "GET /api/admin/resets": (req, res, user) => {
+    if (!user) return sendJson(res, 401, { error: "Not signed in." });
+    if (!user.is_admin) return sendJson(res, 403, { error: "Admin only." });
+    const rows = db.prepare(`
+      SELECT r.code, r.created_at, r.expires_at, u.name, u.email
+      FROM reset_requests r JOIN users u ON u.id = r.user_id
+      WHERE r.used = 0 AND r.expires_at > ?
+      ORDER BY r.created_at DESC
+    `).all(new Date().toISOString());
+    sendJson(res, 200, { resets: rows });
   },
 
   "GET /api/admin/students": (req, res, user) => {

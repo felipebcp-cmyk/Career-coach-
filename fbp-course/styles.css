@@ -69,6 +69,10 @@ body {
   background: var(--bad-bg); color: var(--bad);
   border-radius: 8px; padding: 8px 12px; font-size: 13.5px; margin: 10px 0;
 }
+.auth-info {
+  background: var(--good-bg); color: var(--good);
+  border-radius: 8px; padding: 8px 12px; font-size: 13.5px; margin: 10px 0;
+}
 .row-buttons { display: flex; gap: 10px; }
 .cert-verify { text-align: center; color: var(--muted); font-size: 14px; margin: 14px auto; max-width: 560px; }
 .cert-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
@@ -352,6 +356,28 @@ p { margin: 8px 0; }
   body { background: #fff; }
   .main { margin: 0; max-width: none; }
   .certificate { box-shadow: none; }
+}
+
+/* ---------- small screens ---------- */
+
+.tabs { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.tabs::-webkit-scrollbar { display: none; }
+
+@media (max-width: 640px) {
+  .main { padding: 0 12px; margin-top: 16px; }
+  .card { padding: 16px; }
+  .topbar { padding: 12px 12px 0; }
+  .tab { padding: 12px 12px; }                    /* bigger touch targets */
+  .btn { padding: 12px 18px; }
+  .opt { padding: 13px 14px; }
+  .lesson-row { padding: 14px 10px; }
+  .field input, .field textarea { font-size: 16px; }  /* stops iOS focus zoom */
+  .hero h1 { font-size: 22px; }
+  h1 { font-size: 21px; }
+  .row-buttons { flex-direction: column; }
+  .row-buttons .btn { width: 100%; }
+  .cert-inner { padding: 26px 14px; }
+  .cert-name { font-size: 26px; }
 }
 
 /* ---------- footer, modal, toast ---------- */

@@ -77,17 +77,23 @@
       <span>Email</span>
       <input type="email" id="authEmail" autocomplete="email">
     </label>
+    <label class="field hidden" id="authCodeField">
+      <span>Reset code (ask your course admin — it shows on their dashboard)</span>
+      <input type="text" id="authCode" maxlength="16" autocomplete="one-time-code" style="text-transform:uppercase">
+    </label>
     <label class="field">
-      <span>Password <span id="authPassHint" class="hidden">(8+ characters)</span></span>
+      <span id="authPassLabel">Password <span id="authPassHint" class="hidden">(8+ characters)</span></span>
       <input type="password" id="authPass" autocomplete="current-password">
     </label>
     <p class="auth-error hidden" id="authError"></p>
+    <p class="auth-info hidden" id="authInfo"></p>
     <div class="row-buttons">
       <button class="btn primary" id="authSubmit">Sign in</button>
       <button class="btn" id="authCancel">Cancel</button>
     </div>
     <p class="small" style="margin-top:12px">
       <button class="linklike" id="authToggle">New here? Create an account</button>
+      <button class="linklike" id="authForgot" style="margin-left:10px">Forgot password?</button>
     </p>
   </div>
 </div>
