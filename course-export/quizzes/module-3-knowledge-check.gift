@@ -1,0 +1,66 @@
+// Module 3 — The Advisor's Seat: Strategy, Decisions and Hard Calls: knowledge check
+// GIFT format — import directly into Moodle (Question bank → Import → GIFT)
+
+::Q1:: The clearest evidence that finance is operating strategically is\: {
+  ~Budgets are finalised earlier each year
+  =Resource allocation visibly shifts toward stated strategic priorities rather than rolling forward 'last year plus 3%'
+  ~The strategy document is quoted in the monthly pack
+  ~Every project is approved provided it clears the hurdle rate
+  ####The real strategy is where money, people and time actually go. Rolling budgets forward keeps yesterday's strategy regardless of what the document says.
+}
+
+::Q2:: Two projects have identical NPVs. The strategic lens says\: {
+  ~They are equivalent — approve whichever is cheaper to run
+  =Prefer the one that strengthens where the business wins over the side bet, and say so
+  ~Reject both, since identical NPVs suggest modelling error
+  ~Approve both to be safe
+  ####NPV alone is blind to strategic fit. A project that builds the competitive moat is a different decision from one with the same NPV that doesn't.
+}
+
+::Q3:: A good problem statement includes\: {
+  ~The full history of the issue over five years
+  =The decision to be made, the deadline, and the essential context
+  ~The answer you expect the analysis to reach
+  ~Every stakeholder's opinion recorded verbatim
+  ####Decision, deadline, context — one sentence. It scopes the analysis and prevents solving the wrong problem well.
+}
+
+::Q4:: Revenue fell because deliveries were late because a supplier changed spec after procurement switched to save 3%. The root-cause fix is\: {
+  ~Discount prices to win the volume back
+  ~Increase the revenue forecast to compensate
+  =Fix supplier qualification in procurement
+  ~Report the variance and move on
+  ####Fix where the causal chain starts. Discounting treats the symptom and adds a margin problem to the volume problem.
+}
+
+::Q5:: Why should 'do nothing' appear as an option? {
+  ~To make the pack look thorough
+  =Because it's a real choice with real costs, and pricing it gives every other option an honest baseline
+  ~Because decision-makers usually prefer it
+  ~It shouldn't — it signals indecision
+  ####Do-nothing is always available and never free. Pricing it anchors the comparison honestly.
+}
+
+::Q6:: A pre-mortem asks\: {
+  ~'What is the NPV under the base case?'
+  ='It's two years on and this decision failed — what killed it?'
+  ~'Who should be blamed if this fails?'
+  ~'What does the auditor think?'
+  ####Imagining the failure as already having happened licenses people to name risks they'd never raise as objections — and the mitigations strengthen the recommendation.
+}
+
+::Q7:: Presenting three options with no recommendation is\: {
+  ~Best practice — the choice belongs to the business
+  =Unfinished partnering work\: stakeholders may disagree with your view, but shouldn't have to guess it
+  ~Required for governance reasons
+  ~Appropriate whenever the decision is difficult
+  ####Options without a view is analysis, not partnering. Commit to a recommendation with reasons; the decision still belongs to the decision-maker.
+}
+
+::Q8:: A stakeholder pushes back hard on your analysis. The partner's first move is\: {
+  ~Restate the conclusion more firmly
+  =Ask 'what am I missing?' and genuinely examine their information
+  ~Escalate the disagreement immediately
+  ~Withdraw the analysis to keep the relationship
+  ####Curiosity first. If their information is new and real, update visibly — that builds credibility. If not, hold your view calmly and document both positions for the decision-maker.
+}

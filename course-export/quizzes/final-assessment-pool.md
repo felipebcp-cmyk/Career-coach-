@@ -1,0 +1,292 @@
+# Final assessment — full question pool
+
+Pass mark: 70%. Correct answers are **bold**.
+
+**1. What most distinguishes a finance business partner from a traditional finance role?**
+
+- They produce more detailed reports than traditional finance
+- **They shape decisions before they're made rather than reporting after** ✓
+- They always agree with the business unit's plans
+- They focus exclusively on cost control
+
+> Partnering is forward-looking: influencing the decision, not just recording the result. More detail, automatic agreement, or pure cost focus are all missing the point.
+
+**2. A business partner's analysis was accurate but nobody acted on it. The partnering mindset says:**
+
+- The job is done — acting on it is the business's responsibility
+- **Treat it as a failure worth diagnosing: message, timing, audience or missing recommendation** ✓
+- Escalate to the CFO that the business ignored finance
+- Send the same report again with more data attached
+
+> Partners own the outcome, not just the report. If insight didn't land, diagnose why — clarity, timing, audience, or the absence of a clear recommendation.
+
+**3. Which is the best example of a leading indicator?**
+
+- Last quarter's net profit
+- Prior-year revenue growth
+- **Sales pipeline coverage for next quarter** ✓
+- Last month's actual costs versus budget
+
+> Pipeline tells you what's about to happen. Profit, prior-year growth and actuals are all lagging — they report what already occurred.
+
+**4. In the trust equation, which factor reduces trust as it increases?**
+
+- Credibility
+- Reliability
+- Closeness
+- **Self-orientation** ✓
+
+> Trust = (credibility + reliability + closeness) ÷ self-orientation. The more stakeholders sense you're playing for your own scoreboard, the more everything else is discounted.
+
+**5. What is a driver tree for?**
+
+- Documenting the month-end close process
+- **Linking financial outcomes to the operational levers that move them** ✓
+- Tracking which stakeholders attend your meetings
+- Allocating overheads across cost centres
+
+> A driver tree decomposes a financial result into operational drivers — it translates finance goals into levers the business can actually pull.
+
+**6. A stakeholder is high-influence but you've never properly engaged them. The stakeholder map says this is:**
+
+- Fine — engage only when they contact finance
+- **Your biggest relationship-building opportunity, to be pursued deliberately** ✓
+- A risk to be escalated to your manager
+- Someone to copy on all reports from now on
+
+> High-influence stakeholders with weak relationships are exactly where deliberate investment pays off. Copying them on reports is noise, not relationship.
+
+**7. 'Roughly right and on time beats precisely right and too late' is a principle about:**
+
+- Lowering accounting standards for reported results
+- **Giving decision-useful views with stated assumptions when decisions can't wait** ✓
+- Avoiding detailed analysis altogether
+- Always using last year's numbers as a proxy
+
+> It applies to decision support, not statutory reporting: give a view with ranges and assumptions when the decision is now. Rigour still matters — precision theatre doesn't.
+
+**8. Why do 'deposits' matter in stakeholder relationships?**
+
+- They guarantee stakeholders will always agree with finance
+- **Consistent small acts of usefulness build the balance you draw on when you must challenge or say no** ✓
+- They replace the need for formal reporting
+- They are required by professional standards
+
+> Influence works like a bank account: challenge and bad news are withdrawals, and they only land well if you've built a balance of usefulness first.
+
+**9. 'Travel spend is 12% over budget' is best described as:**
+
+- An insight, because it compares against budget
+- **Information — organised data that hasn't yet answered 'so what?'** ✓
+- An action, because someone will have to cut travel
+- A recommendation
+
+> It's organised data with a comparison, but it hasn't reached meaning ('why, and what does it signify?') or action ('what should we do?'). That climb is the partner's job.
+
+**10. The best place for your conclusion when presenting to executives is:**
+
+- At the end, after the evidence has built up to it
+- In the appendix, to be raised if asked
+- **First, followed by the supporting evidence** ✓
+- Left implicit so executives draw it themselves
+
+> Answer first. Executives decide within seconds whether to keep engaging; suspense is for novels, not boardrooms.
+
+**11. In situation–complication–resolution, the 'complication' is:**
+
+- A detailed technical explanation of methodology
+- **The tension or problem that disturbs the agreed situation and makes people care** ✓
+- A list of all variances over threshold
+- The most complicated chart in the pack
+
+> The complication is what creates stakes — 'growth is fine, BUT it all depends on one customer now tendering'. Without it, there's no reason to care about the resolution.
+
+**12. 'EBITDA margin compression from adverse mix' said to an ops leader should become:**
+
+- 'Please review the EBITDA bridge in appendix 4'
+- **'We're selling more of the products we make less money on'** ✓
+- 'Margins are down 240 basis points'
+- 'Mix variance is unfavourable'
+
+> Translate the substance into business language. Basis points and 'mix variance' are still finance dialect; appendix references dodge the job entirely.
+
+**13. A stakeholder always asks for the bottom line and gets impatient with detail. You should:**
+
+- Send the full model so they learn to value rigour
+- **Give one page: recommendation up top, key numbers, options — detail available on request** ✓
+- Stop communicating with them and go through their analyst instead
+- Present exactly as you would to your finance team
+
+> Match the person's style. A 'driver' wants headline and action; keep the workings ready for when they ask.
+
+**14. Which pairing of comparison and chart is correct?**
+
+- Change over time → pie chart
+- Compare categories → line chart
+- **Change over time → line chart** ✓
+- Single key number → 3-D column chart
+
+> Lines show change over time; sorted horizontal bars compare categories; a single key number is stated big with its comparison; pies and 3-D rarely earn their place.
+
+**15. The best title for a chart showing churn concentrated in the 2024 cohort is:**
+
+- 'Churn analysis'
+- 'Churn by cohort, FY2023–FY2026'
+- **'Churn is concentrated in customers onboarded in 2024'** ✓
+- 'Figure 3'
+
+> Put the message in the title. Descriptive titles make the viewer do the work; message titles do it for them.
+
+**16. How should significant bad news reach a stakeholder first?**
+
+- In the monthly report, where all news belongs
+- By email, so there's a record
+- **Face-to-face or by video, before anything written** ✓
+- Via their assistant
+
+> Bad news lands in person first — it preserves trust, allows questions, and prevents the stakeholder being blindsided in writing or in public.
+
+**17. Influence without authority rests on:**
+
+- Escalating to the CFO whenever the business disagrees
+- **Credibility, reciprocity, and framing choices in the stakeholder's currency** ✓
+- Controlling the budget approval process
+- Withholding analysis until stakeholders cooperate
+
+> Partners rarely have line authority. Influence comes from track record, the relationship balance you've built, and framing recommendations in terms of what the audience values.
+
+**18. Why socialise a big recommendation one-to-one before the formal meeting?**
+
+- To ensure the meeting can be cancelled
+- **To surface objections cheaply, recruit allies, and build ownership before the decision point** ✓
+- Because formal meetings are inappropriate for recommendations
+- To find out who to exclude from the meeting
+
+> Big ideas shouldn't premiere in big meetings. Early one-to-ones make objections cheap to address and turn stakeholders into co-owners.
+
+**19. The clearest evidence that finance is operating strategically is:**
+
+- Budgets are finalised earlier each year
+- **Resource allocation visibly shifts toward stated strategic priorities rather than rolling forward 'last year plus 3%'** ✓
+- The strategy document is quoted in the monthly pack
+- Every project is approved provided it clears the hurdle rate
+
+> The real strategy is where money, people and time actually go. Rolling budgets forward keeps yesterday's strategy regardless of what the document says.
+
+**20. Two projects have identical NPVs. The strategic lens says:**
+
+- They are equivalent — approve whichever is cheaper to run
+- **Prefer the one that strengthens where the business wins over the side bet, and say so** ✓
+- Reject both, since identical NPVs suggest modelling error
+- Approve both to be safe
+
+> NPV alone is blind to strategic fit. A project that builds the competitive moat is a different decision from one with the same NPV that doesn't.
+
+**21. A good problem statement includes:**
+
+- The full history of the issue over five years
+- **The decision to be made, the deadline, and the essential context** ✓
+- The answer you expect the analysis to reach
+- Every stakeholder's opinion recorded verbatim
+
+> Decision, deadline, context — one sentence. It scopes the analysis and prevents solving the wrong problem well.
+
+**22. Revenue fell because deliveries were late because a supplier changed spec after procurement switched to save 3%. The root-cause fix is:**
+
+- Discount prices to win the volume back
+- Increase the revenue forecast to compensate
+- **Fix supplier qualification in procurement** ✓
+- Report the variance and move on
+
+> Fix where the causal chain starts. Discounting treats the symptom and adds a margin problem to the volume problem.
+
+**23. Why should 'do nothing' appear as an option?**
+
+- To make the pack look thorough
+- **Because it's a real choice with real costs, and pricing it gives every other option an honest baseline** ✓
+- Because decision-makers usually prefer it
+- It shouldn't — it signals indecision
+
+> Do-nothing is always available and never free. Pricing it anchors the comparison honestly.
+
+**24. A pre-mortem asks:**
+
+- 'What is the NPV under the base case?'
+- **'It's two years on and this decision failed — what killed it?'** ✓
+- 'Who should be blamed if this fails?'
+- 'What does the auditor think?'
+
+> Imagining the failure as already having happened licenses people to name risks they'd never raise as objections — and the mitigations strengthen the recommendation.
+
+**25. Presenting three options with no recommendation is:**
+
+- Best practice — the choice belongs to the business
+- **Unfinished partnering work: stakeholders may disagree with your view, but shouldn't have to guess it** ✓
+- Required for governance reasons
+- Appropriate whenever the decision is difficult
+
+> Options without a view is analysis, not partnering. Commit to a recommendation with reasons; the decision still belongs to the decision-maker.
+
+**26. A stakeholder pushes back hard on your analysis. The partner's first move is:**
+
+- Restate the conclusion more firmly
+- **Ask 'what am I missing?' and genuinely examine their information** ✓
+- Escalate the disagreement immediately
+- Withdraw the analysis to keep the relationship
+
+> Curiosity first. If their information is new and real, update visibly — that builds credibility. If not, hold your view calmly and document both positions for the decision-maker.
+
+**27. The single most decision-relevant insight in Harbourline's numbers is:**
+
+- Revenue is 2% ahead of budget, so performance is strong
+- **Growth is entirely price while volumes fall — concentrated in a 31% customer now competing with you — which undermines the expansion case** ✓
+- The monthly pack should include more detail on GrocerCo
+- Utilisation should be reported weekly
+
+> The headline connects the driver analysis (price-led growth, falling volume), the concentration risk (GrocerCo at 31% and now a competitor), and the decision at hand (an $8M capacity bet premised on volume growth).
+
+**28. The 68% utilisation figure matters to the board paper because:**
+
+- It shows manufacturing is underperforming and should be restructured
+- **Capacity expansion is hard to justify when a third of existing capacity is idle and volumes are falling** ✓
+- It's informal information and must be ignored entirely
+- It proves the flagship product should be discontinued
+
+> An $8M expansion assumes capacity is the constraint. At 68% utilisation with declining volumes, the constraint is demand — the money solves the wrong problem. Verify the informal figure, but don't ignore it.
+
+**29. Given Dana's style and stake in the paper, your first move is:**
+
+- Present the contrary analysis at the board pre-read meeting where it will have maximum impact
+- Email Dana the full analysis with all workings attached
+- **Book a one-to-one, lead with curiosity about the volume assumption, and share the driver analysis as a problem to solve together** ✓
+- Escalate concerns directly to the CFO before speaking to Dana
+
+> Socialise before any formal meeting, in person, headline-first for a driver, hard on the problem and soft on the person. Ambushing Dana at the board or going around them destroys the relationship you need.
+
+**30. The strongest framing of your concern in Dana's currency is:**
+
+- 'Finance cannot support this paper as drafted'
+- 'The 6% growth assumption breaches forecasting policy'
+- **'If GrocerCo keeps sliding, the new line sits idle and the $8M is gone — but redirected at winning back volume or diversifying customers, it could actually deliver your growth story'** ✓
+- 'The board will probably reject this anyway'
+
+> It connects the evidence to what Dana wants (a growth story that succeeds) and offers a path, rather than a veto, a rulebook, or a threat.
+
+**31. Which option set best serves the decision?**
+
+- Approve $8M now versus reject it — a clean binary for the board
+- **Proceed / do nothing (priced, including the GrocerCo risk) / defer and redirect a smaller amount to demand recovery and customer diversification, with volume triggers for revisiting expansion** ✓
+- Do nothing only, since the analysis is negative
+- Approve but ask manufacturing to raise utilisation first
+
+> Real options with a priced baseline and a trigger-based path give the board a genuine choice. A binary hides the middle path that best fits the evidence.
+
+**32. Your pre-mortem on 'defer and redirect' should most prominently feature:**
+
+- The risk that the board finds the paper too short
+- **The risk that demand recovers strongly and deferral costs market share — mitigated by defined volume triggers and a ready-to-go expansion plan** ✓
+- The risk that Dana is unhappy with finance
+- No risks, since deferral is the safe option
+
+> Pre-mortems stress your own recommendation. Deferral's real failure mode is missing an upturn — so build triggers and a pre-approved restart path into the recommendation. No option is riskless.
+
