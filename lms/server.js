@@ -23,6 +23,7 @@ const PORT = +(process.env.LMS_PORT || 3000);
 const DB_PATH = process.env.LMS_DB || path.join(__dirname, "lms.sqlite");
 const SECURE = process.env.LMS_SECURE === "1";
 const COURSE_DIR = path.join(__dirname, "..", "fbp-course");
+const SITE_DIR = path.join(__dirname, "..", "site");
 const SESSION_DAYS = 30;
 const MAX_BODY = 200 * 1024;
 
@@ -407,14 +408,14 @@ function verifyPage(code) {
   if (!row) {
     return { status: 404, html: shell(`<h1 class="bad">✗ Not verified</h1>
       <p>No certificate exists with code <span class="code">${escapeHtml(code)}</span>.</p>
-      <p><a href="/">Back to the course</a></p>`) };
+      <p><a href="/">About this course</a></p>`) };
   }
   const date = new Date(row.issued_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
   return { status: 200, html: shell(`<h1 class="ok">✓ Verified</h1>
     <p><strong>${escapeHtml(row.name)}</strong> completed</p>
     <p><strong>${escapeHtml(COURSE.title)}</strong></p>
     <p>Certificate <span class="code">${escapeHtml(row.code)}</span> · issued ${escapeHtml(date)}</p>
-    <p><a href="/">Back to the course</a></p>`) };
+    <p><a href="/">About this course</a></p>`) };
 }
 
 /* ---------- static files (the course app itself) ---------- */
@@ -429,12 +430,24 @@ const MIME = {
   ".ico": "image/x-icon"
 };
 
+/* One deploy, two static roots: the marketing site at "/" and the course app
+   at "/fbp-course/" (which also keeps the site's relative ../fbp-course/
+   links working when the repo is browsed statically). */
 function serveStatic(res, urlPath) {
   let p;
   try { p = decodeURIComponent(urlPath); } catch (e) { p = "/"; }
-  if (p === "/") p = "/index.html";
-  const file = path.normalize(path.join(COURSE_DIR, p));
-  if (!file.startsWith(COURSE_DIR + path.sep)) return sendHtml(res, 404, "Not found");
+  let base = SITE_DIR;
+  if (p === "/course" || p === "/course/") {
+    res.writeHead(302, { Location: "/fbp-course/" });
+    return res.end();
+  }
+  if (p === "/fbp-course" || p.startsWith("/fbp-course/")) {
+    base = COURSE_DIR;
+    p = p.slice("/fbp-course".length) || "/";
+  }
+  if (p.endsWith("/")) p += "index.html";
+  const file = path.normalize(path.join(base, p));
+  if (!file.startsWith(base + path.sep)) return sendHtml(res, 404, "Not found");
   fs.readFile(file, (err, buf) => {
     if (err) return sendHtml(res, 404, "Not found");
     res.writeHead(200, { "Content-Type": MIME[path.extname(file)] || "application/octet-stream" });
@@ -476,5 +489,6 @@ server.listen(PORT, () => {
   console.log(`FBP Course LMS running at http://localhost:${PORT}`);
   console.log(`Course: ${COURSE.title}`);
   console.log(`Database: ${DB_PATH}`);
+  console.log(`Marketing site:  /          Course app: /fbp-course/`);
   console.log("The first account registered becomes the admin (dashboard at /admin).");
 });

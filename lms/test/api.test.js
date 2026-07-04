@@ -68,11 +68,16 @@ async function main() {
     }
     ok(true, "server is up (/api/health)");
 
-    // static serving of the course app
+    // static serving: marketing site at /, course app at /fbp-course/
     const home = await req("GET", "/");
-    ok(home.status === 200 && home.text.includes("Finance Business Partner"), "serves the course app at /");
-    ok((await req("GET", "/js/app.js")).status === 200, "serves static js");
-    ok((await req("GET", "/../lms/server.js")).status === 404, "blocks path traversal");
+    ok(home.status === 200 && home.text.includes("Stop explaining what happened"), "serves the marketing site at /");
+    ok((await req("GET", "/about.html")).text.includes("Nobody ever told me"), "serves the About page");
+    const app = await req("GET", "/fbp-course/");
+    ok(app.status === 200 && app.text.includes("Finance Business Partner's Playbook") && app.text.includes("js/app.js"), "serves the course app at /fbp-course/");
+    ok((await req("GET", "/fbp-course/js/app.js")).status === 200, "serves course static js");
+    ok((await req("GET", "/course")).status === 302, "/course redirects to the app");
+    ok((await req("GET", "/../lms/server.js")).status === 404, "blocks path traversal (site root)");
+    ok((await req("GET", "/fbp-course/../lms/server.js")).status === 404, "blocks path traversal (course root)");
 
     // registration + validation
     ok((await req("POST", "/api/register", { body: { name: "", email: "a@b.co", password: "longenough" } })).status === 400, "register rejects empty name");

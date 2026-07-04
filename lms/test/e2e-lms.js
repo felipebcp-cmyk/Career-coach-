@@ -32,6 +32,14 @@ async function main() {
       catch (e) { if (i > 30) throw e; await page.waitForTimeout(200); }
     }
 
+    // Marketing site is the front door; its CTA leads into the course app.
+    const landingH1 = await page.textContent("h1");
+    if (!landingH1.includes("Stop explaining")) throw new Error("marketing site not at /: " + landingH1);
+    await page.click(".hero .btn.gold");
+    await page.waitForSelector("#onboarding:not(.hidden)");
+    if (!page.url().includes("/fbp-course/")) throw new Error("CTA did not land on the course app: " + page.url());
+    console.log("✓ marketing site at /, CTA lands on the course app");
+
     // Guest onboarding modal shows, with a sign-in path when the LMS is up.
     await page.waitForSelector("#onboarding:not(.hidden)");
     await page.click("#obAuth");

@@ -20,9 +20,15 @@ node lms/server.js
 | `LMS_DB`     | `lms/lms.sqlite`  | SQLite database file (created on first run)    |
 | `LMS_SECURE` | unset             | Set to `1` behind HTTPS to mark cookies Secure |
 
-The server serves the course app itself at `/`, so it's one deployable: any
-box with Node 22+ (a $5 VPS, Fly.io, Railway, a Raspberry Pi) runs the whole
-platform.
+One deploy serves the whole platform — any box with Node 22+ (a $5 VPS,
+Fly.io, Railway, a Raspberry Pi):
+
+| URL | What lives there |
+|---|---|
+| `/` | Marketing site (`../site`) — hero, curriculum, pricing, About |
+| `/fbp-course/` | The course app itself (`/course` redirects here) |
+| `/admin` | Admin dashboard (admins only) |
+| `/verify/<code>` | Public certificate verification |
 
 ## How it works
 
