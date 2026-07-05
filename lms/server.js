@@ -28,38 +28,49 @@ const HN_DIR = path.join(__dirname, "..", "hn-course");
 const SESSION_DAYS = 30;
 const MAX_BODY = 200 * 1024;
 
-/* ---------- course content (single source of truth: the app's content.js) ---------- */
+/* ---------- course registry (single source of truth: each app's content.js) ---------- */
 
-const COURSE = (() => {
-  const src = fs.readFileSync(path.join(COURSE_DIR, "js", "content.js"), "utf8");
+function loadCourse(dir) {
+  const src = fs.readFileSync(path.join(dir, "js", "content.js"), "utf8");
   return new Function(src + "; return COURSE;")();
-})();
-
-function passMarkFor(key) {
-  return key === "capstone" ? COURSE.capstone.assessment.passMark : COURSE.passMark;
 }
 
-/* Server-side progress summary, mirroring the app's weighting
+const COURSES = {
+  fbp: { dir: COURSE_DIR, content: loadCourse(COURSE_DIR) },
+  hn: { dir: HN_DIR, content: loadCourse(HN_DIR) }
+};
+
+/* course id from ?course=… — required on progress/certificate endpoints */
+function reqCourse(req) {
+  const m = /[?&]course=([a-z0-9_-]+)/.exec(req.url);
+  return m && COURSES[m[1]] ? m[1] : null;
+}
+
+function passMarkFor(content, key) {
+  return key === "capstone" ? content.capstone.assessment.passMark : content.passMark;
+}
+
+/* Server-side progress summary, mirroring the apps' weighting
    (lessons 40%, workshops 15%, module quizzes 25%, final 20%). */
-function summarize(data) {
+function summarize(content, data) {
   const d = data && typeof data === "object" ? data : {};
   const scores = d.quizScores && typeof d.quizScores === "object" ? d.quizScores : {};
   const lessonsDoneMap = d.lessonsDone && typeof d.lessonsDone === "object" ? d.lessonsDone : {};
   const workshops = d.workshops && typeof d.workshops === "object" ? d.workshops : {};
 
-  const totalLessons = COURSE.modules.reduce((n, m) => n + m.lessons.length, 0);
-  const lessonsDone = COURSE.modules.reduce((n, m) =>
+  const totalLessons = content.modules.reduce((n, m) => n + m.lessons.length, 0);
+  const lessonsDone = content.modules.reduce((n, m) =>
     n + m.lessons.filter(l => lessonsDoneMap[l.id]).length, 0);
-  const workshopsDone = COURSE.modules.filter(m =>
+  const workshopsDone = content.modules.filter(m =>
     typeof workshops[m.id] === "string" && workshops[m.id].trim().length >= 40).length;
-  const quizzesPassed = COURSE.modules.filter(m =>
-    (scores[m.id] || 0) >= passMarkFor(m.id)).length;
-  const finalPassed = (scores.capstone || 0) >= passMarkFor("capstone");
-  const complete = quizzesPassed === COURSE.modules.length && finalPassed;
+  const quizzesPassed = content.modules.filter(m =>
+    (scores[m.id] || 0) >= passMarkFor(content, m.id)).length;
+  const finalPassed = (scores.capstone || 0) >= passMarkFor(content, "capstone");
+  const complete = quizzesPassed === content.modules.length && finalPassed;
   const progressPct = Math.round(
     (lessonsDone / totalLessons) * 40 +
-    (workshopsDone / COURSE.modules.length) * 15 +
-    (quizzesPassed / COURSE.modules.length) * 25 +
+    (workshopsDone / content.modules.length) * 15 +
+    (quizzesPassed / content.modules.length) * 25 +
     (finalPassed ? 20 : 0));
   return { lessonsDone, totalLessons, workshopsDone, quizzesPassed, finalPassed, complete, progressPct };
 }
@@ -67,8 +78,24 @@ function summarize(data) {
 /* ---------- database ---------- */
 
 const db = new DatabaseSync(DB_PATH);
+db.exec("PRAGMA journal_mode = WAL;");
+
+/* v1 databases had single-course progress/certificates keyed on user only;
+   rename them so the multi-course tables can be created, then copy the old
+   rows over as course 'fbp'. */
+function tableCols(name) {
+  try { return db.prepare(`PRAGMA table_info(${name})`).all().map(c => c.name); }
+  catch (e) { return []; }
+}
+const legacy = tableCols("progress").length && !tableCols("progress").includes("course_id");
+if (legacy) {
+  db.exec(`
+    ALTER TABLE progress RENAME TO progress_v1;
+    ALTER TABLE certificates RENAME TO certificates_v1;
+  `);
+}
+
 db.exec(`
-  PRAGMA journal_mode = WAL;
   CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,14 +107,18 @@ db.exec(`
     created_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS progress (
-    user_id INTEGER PRIMARY KEY REFERENCES users(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    course_id TEXT NOT NULL,
     data TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, course_id)
   );
   CREATE TABLE IF NOT EXISTS certificates (
-    user_id INTEGER PRIMARY KEY REFERENCES users(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    course_id TEXT NOT NULL,
     code TEXT NOT NULL UNIQUE,
-    issued_at TEXT NOT NULL
+    issued_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, course_id)
   );
   CREATE TABLE IF NOT EXISTS reset_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,6 +129,18 @@ db.exec(`
     used INTEGER NOT NULL DEFAULT 0
   );
 `);
+
+if (legacy) {
+  db.exec(`
+    INSERT OR IGNORE INTO progress (user_id, course_id, data, updated_at)
+      SELECT user_id, 'fbp', data, updated_at FROM progress_v1;
+    INSERT OR IGNORE INTO certificates (user_id, course_id, code, issued_at)
+      SELECT user_id, 'fbp', code, issued_at FROM certificates_v1;
+    DROP TABLE progress_v1;
+    DROP TABLE certificates_v1;
+  `);
+  console.log("Migrated v1 single-course data to multi-course schema (as course 'fbp').");
+}
 
 const SECRET = (() => {
   const row = db.prepare("SELECT v FROM meta WHERE k = 'secret'").get();
@@ -202,13 +245,15 @@ function escapeHtml(s) {
 
 /* ---------- certificate issuance ---------- */
 
-function issueCertificateIfEarned(userId, data) {
-  if (!summarize(data).complete) return null;
-  const existing = db.prepare("SELECT code, issued_at FROM certificates WHERE user_id = ?").get(userId);
+function issueCertificateIfEarned(userId, courseId, data) {
+  if (!summarize(COURSES[courseId].content, data).complete) return null;
+  const existing = db.prepare(
+    "SELECT code, issued_at FROM certificates WHERE user_id = ? AND course_id = ?").get(userId, courseId);
   if (existing) return { code: existing.code, issuedAt: existing.issued_at };
   const code = crypto.randomBytes(5).toString("hex").toUpperCase();
   const issuedAt = new Date().toISOString();
-  db.prepare("INSERT INTO certificates (user_id, code, issued_at) VALUES (?, ?, ?)").run(userId, code, issuedAt);
+  db.prepare("INSERT INTO certificates (user_id, course_id, code, issued_at) VALUES (?, ?, ?, ?)")
+    .run(userId, courseId, code, issuedAt);
   return { code, issuedAt };
 }
 
@@ -217,7 +262,10 @@ function issueCertificateIfEarned(userId, data) {
 const routes = {
 
   "GET /api/health": (req, res) => {
-    sendJson(res, 200, { ok: true, course: COURSE.title });
+    sendJson(res, 200, {
+      ok: true,
+      courses: Object.entries(COURSES).map(([id, c]) => ({ id, title: c.content.title }))
+    });
   },
 
   "POST /api/register": async (req, res) => {
@@ -321,20 +369,25 @@ const routes = {
 
   "GET /api/progress": (req, res, user) => {
     if (!user) return sendJson(res, 401, { error: "Not signed in." });
-    const row = db.prepare("SELECT data, updated_at FROM progress WHERE user_id = ?").get(user.id);
+    const courseId = reqCourse(req);
+    if (!courseId) return sendJson(res, 400, { error: "Unknown or missing ?course=" });
+    const row = db.prepare(
+      "SELECT data, updated_at FROM progress WHERE user_id = ? AND course_id = ?").get(user.id, courseId);
     sendJson(res, 200, { data: row ? JSON.parse(row.data) : null, updatedAt: row ? row.updated_at : null });
   },
 
   "PUT /api/progress": async (req, res, user) => {
     if (!user) return sendJson(res, 401, { error: "Not signed in." });
+    const courseId = reqCourse(req);
+    if (!courseId) return sendJson(res, 400, { error: "Unknown or missing ?course=" });
     const data = await readJsonBody(req);
     const json = JSON.stringify(data);
     db.prepare(`
-      INSERT INTO progress (user_id, data, updated_at) VALUES (?, ?, ?)
-      ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at
-    `).run(user.id, json, new Date().toISOString());
-    const certificate = issueCertificateIfEarned(user.id, data);
-    sendJson(res, 200, { ok: true, summary: summarize(data), certificate });
+      INSERT INTO progress (user_id, course_id, data, updated_at) VALUES (?, ?, ?, ?)
+      ON CONFLICT(user_id, course_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at
+    `).run(user.id, courseId, json, new Date().toISOString());
+    const certificate = issueCertificateIfEarned(user.id, courseId, data);
+    sendJson(res, 200, { ok: true, summary: summarize(COURSES[courseId].content, data), certificate });
   },
 
   // navigator.sendBeacon can only POST — accept it as an alias for PUT
@@ -342,7 +395,10 @@ const routes = {
 
   "GET /api/certificate": (req, res, user) => {
     if (!user) return sendJson(res, 401, { error: "Not signed in." });
-    const row = db.prepare("SELECT code, issued_at FROM certificates WHERE user_id = ?").get(user.id);
+    const courseId = reqCourse(req);
+    if (!courseId) return sendJson(res, 400, { error: "Unknown or missing ?course=" });
+    const row = db.prepare(
+      "SELECT code, issued_at FROM certificates WHERE user_id = ? AND course_id = ?").get(user.id, courseId);
     if (!row) return sendJson(res, 404, { error: "No certificate issued yet." });
     sendJson(res, 200, { code: row.code, issuedAt: row.issued_at, verifyPath: "/verify/" + row.code });
   },
@@ -362,27 +418,30 @@ const routes = {
   "GET /api/admin/students": (req, res, user) => {
     if (!user) return sendJson(res, 401, { error: "Not signed in." });
     if (!user.is_admin) return sendJson(res, 403, { error: "Admin only." });
-    const rows = db.prepare(`
-      SELECT u.id, u.name, u.email, u.created_at, p.data, p.updated_at, c.code, c.issued_at
-      FROM users u
-      LEFT JOIN progress p ON p.user_id = u.id
-      LEFT JOIN certificates c ON c.user_id = u.id
-      ORDER BY u.created_at
-    `).all();
+    const users = db.prepare("SELECT id, name, email, created_at FROM users ORDER BY created_at").all();
+    const progress = db.prepare("SELECT * FROM progress").all();
+    const certs = db.prepare("SELECT * FROM certificates").all();
     sendJson(res, 200, {
-      students: rows.map(r => {
-        const s = r.data ? summarize(JSON.parse(r.data)) : summarize(null);
-        return {
-          name: r.name, email: r.email, registered: r.created_at,
-          lastActive: r.updated_at || null,
-          progressPct: s.progressPct,
-          lessons: `${s.lessonsDone}/${s.totalLessons}`,
-          workshops: `${s.workshopsDone}/${COURSE.modules.length}`,
-          quizzesPassed: `${s.quizzesPassed}/${COURSE.modules.length}`,
-          finalPassed: s.finalPassed,
-          certificate: r.code ? { code: r.code, issuedAt: r.issued_at } : null
-        };
-      })
+      students: users.map(u => ({
+        name: u.name, email: u.email, registered: u.created_at,
+        courses: progress.filter(p => p.user_id === u.id).map(p => {
+          const c = COURSES[p.course_id];
+          if (!c) return null;
+          const s = summarize(c.content, JSON.parse(p.data));
+          const cert = certs.find(x => x.user_id === u.id && x.course_id === p.course_id);
+          return {
+            courseId: p.course_id,
+            courseTitle: c.content.title,
+            lastActive: p.updated_at,
+            progressPct: s.progressPct,
+            lessons: `${s.lessonsDone}/${s.totalLessons}`,
+            workshops: `${s.workshopsDone}/${c.content.modules.length}`,
+            quizzesPassed: `${s.quizzesPassed}/${c.content.modules.length}`,
+            finalPassed: s.finalPassed,
+            certificate: cert ? { code: cert.code, issuedAt: cert.issued_at } : null
+          };
+        }).filter(Boolean)
+      }))
     });
   }
 };
@@ -391,7 +450,7 @@ const routes = {
 
 function verifyPage(code) {
   const row = db.prepare(`
-    SELECT c.code, c.issued_at, u.name FROM certificates c
+    SELECT c.code, c.issued_at, c.course_id, u.name FROM certificates c
     JOIN users u ON u.id = c.user_id WHERE c.code = ?
   `).get(code);
   const shell = inner => `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
@@ -412,9 +471,10 @@ function verifyPage(code) {
       <p><a href="/">About this course</a></p>`) };
   }
   const date = new Date(row.issued_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const courseTitle = COURSES[row.course_id] ? COURSES[row.course_id].content.title : "the course";
   return { status: 200, html: shell(`<h1 class="ok">✓ Verified</h1>
     <p><strong>${escapeHtml(row.name)}</strong> completed</p>
-    <p><strong>${escapeHtml(COURSE.title)}</strong></p>
+    <p><strong>${escapeHtml(courseTitle)}</strong></p>
     <p>Certificate <span class="code">${escapeHtml(row.code)}</span> · issued ${escapeHtml(date)}</p>
     <p><a href="/">About this course</a></p>`) };
 }
@@ -493,9 +553,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`FBP Course LMS running at http://localhost:${PORT}`);
-  console.log(`Course: ${COURSE.title}`);
+  console.log(`Course LMS running at http://localhost:${PORT}`);
+  Object.entries(COURSES).forEach(([id, c]) =>
+    console.log(`  /${id === "fbp" ? "fbp-course" : "hn-course"}/  ${c.content.title}`));
   console.log(`Database: ${DB_PATH}`);
-  console.log(`Marketing site:  /          Course app: /fbp-course/`);
-  console.log("The first account registered becomes the admin (dashboard at /admin).");
+  console.log(`Marketing site at /  ·  admin dashboard at /admin`);
+  console.log("The first account registered becomes the admin.");
 });

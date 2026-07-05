@@ -26,9 +26,16 @@ Fly.io, Railway, a Raspberry Pi):
 | URL | What lives there |
 |---|---|
 | `/` | Marketing site (`../site`) — hero, curriculum, pricing, About |
-| `/fbp-course/` | The course app itself (`/course` redirects here) |
+| `/fbp-course/` | *The Finance Business Partner's Playbook* (`/course` redirects here) |
+| `/hn-course/` | *The Human Nature Playbook* |
 | `/admin` | Admin dashboard (admins only) |
 | `/verify/<code>` | Public certificate verification |
+
+**One account, every course.** Learners sign in once; each course syncs its
+own progress (`?course=` scoped) and earns its own certificate. The apps
+discover their course id from `/api/health`, so a course app served outside
+this LMS simply stays in guest mode. v1 single-course databases are migrated
+automatically on first start.
 
 ## How it works
 
@@ -54,14 +61,14 @@ Fly.io, Railway, a Raspberry Pi):
 
 | Method & path              | Auth   | Purpose                                  |
 |----------------------------|--------|------------------------------------------|
-| `GET /api/health`          | —      | LMS detection / liveness                 |
+| `GET /api/health`          | —      | LMS detection; lists course ids + titles |
 | `POST /api/register`       | —      | Create account (name, email, password 8+) |
 | `POST /api/login`          | —      | Sign in                                  |
 | `POST /api/logout`         | —      | Sign out                                 |
 | `GET /api/me`              | cookie | Current user                             |
-| `GET /api/progress`        | cookie | Fetch saved course state                 |
-| `PUT /api/progress`        | cookie | Save state; auto-issues certificate on completion |
-| `GET /api/certificate`     | cookie | Your certificate code + verify path      |
+| `GET /api/progress?course=id` | cookie | Fetch saved state for that course     |
+| `PUT /api/progress?course=id` | cookie | Save state; auto-issues that course's certificate on completion |
+| `GET /api/certificate?course=id` | cookie | Your certificate for that course  |
 | `GET /verify/<code>`       | —      | Public verification page                 |
 | `POST /api/request-reset`  | —      | Create a password-reset code (admin hands it over) |
 | `POST /api/reset-password` | —      | Redeem code + set new password (signs in) |

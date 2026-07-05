@@ -41,7 +41,7 @@
   </div>
   <div class="card"><table id="tbl">
     <thead><tr>
-      <th>Name</th><th>Email</th><th>Progress</th><th>Lessons</th><th>Workshops</th>
+      <th>Name</th><th>Email</th><th>Course</th><th>Progress</th><th>Lessons</th><th>Workshops</th>
       <th>Quizzes</th><th>Final</th><th>Certificate</th><th>Last active</th>
     </tr></thead>
     <tbody></tbody>
@@ -68,27 +68,35 @@
     }
   }
 
-  const certified = students.filter(s => s.certificate).length;
-  const active = students.filter(s => s.lastActive).length;
+  const allCourses = students.flatMap(s => s.courses);
+  const certified = allCourses.filter(c => c.certificate).length;
+  const started = students.filter(s => s.courses.length).length;
   document.getElementById("stats").innerHTML = `
     <div class="stat"><b>${students.length}</b><span>registered</span></div>
-    <div class="stat"><b>${active}</b><span>started</span></div>
-    <div class="stat"><b>${certified}</b><span>certified</span></div>`;
+    <div class="stat"><b>${started}</b><span>started a course</span></div>
+    <div class="stat"><b>${certified}</b><span>certificates issued</span></div>`;
 
-  document.querySelector("#tbl tbody").innerHTML = students.map(s => `
+  const row = (s, c) => `
     <tr>
       <td>${esc(s.name)}</td>
       <td class="muted">${esc(s.email)}</td>
-      <td><span class="meter"><i style="width:${s.progressPct}%"></i></span><span class="pct">${s.progressPct}%</span></td>
-      <td>${esc(s.lessons)}</td>
-      <td>${esc(s.workshops)}</td>
-      <td>${esc(s.quizzesPassed)}</td>
-      <td>${s.finalPassed ? "✓" : "—"}</td>
-      <td>${s.certificate
-        ? `<span class="cert">✓</span> <a href="/verify/${esc(s.certificate.code)}"><span class="code">${esc(s.certificate.code)}</span></a>`
+      ${c ? `
+      <td>${esc(c.courseTitle)}</td>
+      <td><span class="meter"><i style="width:${c.progressPct}%"></i></span><span class="pct">${c.progressPct}%</span></td>
+      <td>${esc(c.lessons)}</td>
+      <td>${esc(c.workshops)}</td>
+      <td>${esc(c.quizzesPassed)}</td>
+      <td>${c.finalPassed ? "✓" : "—"}</td>
+      <td>${c.certificate
+        ? `<span class="cert">✓</span> <a href="/verify/${esc(c.certificate.code)}"><span class="code">${esc(c.certificate.code)}</span></a>`
         : `<span class="muted">—</span>`}</td>
-      <td class="muted">${fmt(s.lastActive)}</td>
-    </tr>`).join("");
+      <td class="muted">${fmt(c.lastActive)}</td>`
+      : `<td class="muted" colspan="8">— no course started yet —</td>`}
+    </tr>`;
+
+  document.querySelector("#tbl tbody").innerHTML = students.map(s =>
+    s.courses.length ? s.courses.map(c => row(s, c)).join("") : row(s, null)
+  ).join("");
 })();
 </script>
 </body>

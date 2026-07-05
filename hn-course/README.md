@@ -9,10 +9,11 @@ Runs in two modes:
 
 - **Guest mode (no accounts, no server):** open `index.html`; progress lives
   in the browser's `localStorage` (`hncourse.v1`).
-- **Served by the LMS** (`../lms/server.js`) at `/hn-course/` — currently in
-  guest mode there: the app only syncs accounts with an LMS whose health
-  endpoint reports *this* course's title, so the two courses can't clobber
-  each other's account progress.
+- **Served by the LMS** (`../lms/server.js`) at `/hn-course/` — full account
+  support: the same login works across both courses, with separate per-course
+  progress and a separate certificate for each. The app discovers its course
+  id from the LMS health endpoint, so served anywhere else it stays in guest
+  mode.
 
 ## Structure
 

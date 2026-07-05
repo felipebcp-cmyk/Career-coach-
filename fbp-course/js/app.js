@@ -76,6 +76,7 @@
   /* ---------- LMS session & sync (active only when served by lms/server.js) ---------- */
 
   let lmsAvailable = false;
+  let courseId = null;      // this course's id on the LMS, from /api/health
   let session = null;      // {name, email, admin} when signed in
   let certInfo = null;     // {code, issuedAt, verifyPath} once issued
   let syncTimer = null;
@@ -97,7 +98,7 @@
   async function pushProgress() {
     clearTimeout(syncTimer);
     syncTimer = null;
-    const res = await apiFetch("/api/progress", { method: "PUT", body: JSON.stringify(state) });
+    const res = await apiFetch("/api/progress?course=" + courseId, { method: "PUT", body: JSON.stringify(state) });
     if (res && res.certificate && !certInfo) {
       certInfo = res.certificate;
       if (view === "certificate") render();
@@ -107,7 +108,7 @@
   // flush pending progress when the tab is hidden or closed
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden" && session && syncTimer) {
-      navigator.sendBeacon("/api/progress",
+      navigator.sendBeacon("/api/progress?course=" + courseId,
         new Blob([JSON.stringify(state)], { type: "application/json" }));
       clearTimeout(syncTimer);
       syncTimer = null;
@@ -221,18 +222,21 @@
 
   async function initLms() {
     const health = await apiFetch("/api/health");
-    lmsAvailable = !!(health && health.course === COURSE.title); // only sync with an LMS serving THIS course
+    const entry = health && Array.isArray(health.courses)
+      ? health.courses.find(c => c.title === COURSE.title) : null;
+    courseId = entry ? entry.id : null; // only sync with an LMS that serves THIS course
+    lmsAvailable = !!courseId;
     if (!lmsAvailable) return;             // static/guest mode — app works as before
     session = await apiFetch("/api/me");
     if (!session) return;
-    const server = await apiFetch("/api/progress");
+    const server = await apiFetch("/api/progress?course=" + courseId);
     if (server && server.data) {
       state = sanitizeState(server.data);  // the account is the source of truth
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
     } else if (state.startedAt) {
       await pushProgress();                // migrate this browser's guest progress up
     }
-    certInfo = await apiFetch("/api/certificate");
+    certInfo = await apiFetch("/api/certificate?course=" + courseId);
     if (!state.startedAt) {                // signed-in users skip the onboarding modal
       state.name = session.name;
       state.startedAt = new Date().toISOString();
@@ -929,7 +933,7 @@
       if (session) {
         state.name = session.name;
         state.startedAt = new Date().toISOString();
-        await apiFetch("/api/progress", { method: "PUT", body: JSON.stringify(state) });
+        await apiFetch("/api/progress?course=" + courseId, { method: "PUT", body: JSON.stringify(state) });
       }
       location.reload();
     });

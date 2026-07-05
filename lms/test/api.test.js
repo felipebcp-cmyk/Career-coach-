@@ -66,7 +66,9 @@ async function main() {
       catch (e) { if (i > 40) throw e; }
       await new Promise(r => setTimeout(r, 150));
     }
-    ok(true, "server is up (/api/health)");
+    const health = await req("GET", "/api/health");
+    ok(health.json.courses.length === 2 && health.json.courses.some(c => c.id === "fbp") && health.json.courses.some(c => c.id === "hn"),
+      "health lists both courses");
 
     // static serving: marketing site at /, course app at /fbp-course/
     const home = await req("GET", "/");
@@ -107,30 +109,32 @@ async function main() {
     ok((await req("GET", "/api/me", { cookie: "sid=1.9999999999999.deadbeef" })).status === 401, "forged session cookie rejected");
 
     // progress
-    ok((await req("GET", "/api/progress")).status === 401, "progress requires auth");
-    const empty = await req("GET", "/api/progress", { cookie: bobC });
+    ok((await req("GET", "/api/progress?course=fbp")).status === 401, "progress requires auth");
+    ok((await req("GET", "/api/progress", { cookie: bobC })).status === 400, "progress requires ?course=");
+    ok((await req("GET", "/api/progress?course=nope", { cookie: bobC })).status === 400, "unknown course rejected");
+    const empty = await req("GET", "/api/progress?course=fbp", { cookie: bobC });
     ok(empty.status === 200 && empty.json.data === null, "no progress yet returns null");
 
     const partial = completeState();
     partial.quizScores = { m1: 1 };  // not complete
-    const put1 = await req("PUT", "/api/progress", { cookie: bobC, body: partial });
+    const put1 = await req("PUT", "/api/progress?course=fbp", { cookie: bobC, body: partial });
     ok(put1.status === 200 && put1.json.certificate === null && put1.json.summary.complete === false, "partial progress saved, no certificate");
     ok(put1.json.summary.quizzesPassed === 1 && put1.json.summary.lessonsDone === 4, "server summary counts quizzes and lessons");
 
-    const back = await req("GET", "/api/progress", { cookie: bobC });
+    const back = await req("GET", "/api/progress?course=fbp", { cookie: bobC });
     ok(back.json.data.quizScores.m1 === 1, "progress round-trips");
 
-    ok((await req("GET", "/api/certificate", { cookie: bobC })).status === 404, "no certificate before completion");
+    ok((await req("GET", "/api/certificate?course=fbp", { cookie: bobC })).status === 404, "no certificate before completion");
 
     // completion → auto-certificate
-    const put2 = await req("PUT", "/api/progress", { cookie: bobC, body: completeState() });
+    const put2 = await req("PUT", "/api/progress?course=fbp", { cookie: bobC, body: completeState() });
     ok(put2.status === 200 && put2.json.summary.complete === true && put2.json.certificate && put2.json.certificate.code, "completion auto-issues a certificate");
     const code = put2.json.certificate.code;
 
-    const put3 = await req("PUT", "/api/progress", { cookie: bobC, body: completeState() });
+    const put3 = await req("PUT", "/api/progress?course=fbp", { cookie: bobC, body: completeState() });
     ok(put3.json.certificate.code === code, "certificate is issued once, code stable");
 
-    const cert = await req("GET", "/api/certificate", { cookie: bobC });
+    const cert = await req("GET", "/api/certificate?course=fbp", { cookie: bobC });
     ok(cert.status === 200 && cert.json.code === code && cert.json.verifyPath === "/verify/" + code, "certificate endpoint returns code and verify path");
 
     // public verification
@@ -138,13 +142,29 @@ async function main() {
     ok(verify.status === 200 && verify.text.includes("Bob Student") && verify.text.includes("Verified"), "verification page confirms name");
     ok((await req("GET", "/verify/NOPE123456")).status === 404, "bogus code is not verified");
 
+    // ---- second course under the same account ----
+    const hnEmpty = await req("GET", "/api/progress?course=hn", { cookie: bobC });
+    ok(hnEmpty.json.data === null, "courses have separate progress (hn empty while fbp complete)");
+    const hnPut = await req("PUT", "/api/progress?course=hn", { cookie: bobC, body: completeState() });
+    ok(hnPut.json.summary.complete === true && hnPut.json.certificate && hnPut.json.certificate.code !== code,
+      "completing the second course issues a second, distinct certificate");
+    const hnCode = hnPut.json.certificate.code;
+    const hnVerify = await req("GET", "/verify/" + hnCode);
+    ok(hnVerify.status === 200 && hnVerify.text.includes("Human Nature Playbook"),
+      "verification page names the right course");
+    const fbpVerify2 = await req("GET", "/verify/" + code);
+    ok(fbpVerify2.text.includes("Finance Business Partner"), "fbp verification still names its course");
+
     // admin
     ok((await req("GET", "/api/admin/students")).status === 401, "admin API requires auth");
     ok((await req("GET", "/api/admin/students", { cookie: bobC })).status === 403, "non-admin gets 403");
     const students = await req("GET", "/api/admin/students", { cookie: aliceC });
     ok(students.status === 200 && students.json.students.length === 2, "admin sees all students");
     const bobRow = students.json.students.find(s => s.email === "bob@example.com");
-    ok(bobRow.certificate.code === code && bobRow.progressPct > 50 && bobRow.finalPassed, "admin sees Bob's progress and certificate");
+    ok(bobRow.courses.length === 2, "admin sees Bob enrolled in both courses");
+    const bobFbp = bobRow.courses.find(c => c.courseId === "fbp");
+    ok(bobFbp.certificate.code === code && bobFbp.progressPct > 50 && bobFbp.finalPassed, "admin sees Bob's fbp progress and certificate");
+    ok(bobRow.courses.find(c => c.courseId === "hn").certificate, "admin sees Bob's hn certificate too");
 
     ok((await req("GET", "/admin", { cookie: bobC })).status === 302, "admin page redirects non-admins");
     const adminPage = await req("GET", "/admin", { cookie: aliceC });
@@ -155,7 +175,7 @@ async function main() {
     ok(out.status === 200 && /Max-Age=0/.test(out.rawCookie || ""), "logout clears the cookie");
 
     // malformed input
-    const badBody = await fetch(BASE + "/api/progress", {
+    const badBody = await fetch(BASE + "/api/progress?course=fbp", {
       method: "PUT", headers: { "Content-Type": "application/json", Cookie: aliceC }, body: "not json{"
     });
     ok(badBody.status === 400, "malformed JSON is a 400, not a crash");

@@ -91,6 +91,15 @@ async function main() {
     await page.waitForSelector(".lesson-row.done");
     console.log("✓ sign out / sign in round-trip keeps progress");
 
+    // Same account on the second course: signed in, but progress is separate.
+    await page.goto(BASE + "/hn-course/");
+    await page.waitForSelector(".account-name");
+    await page.click('.tab[data-view="m1"]');
+    if (await page.locator(".lesson-row.done").count())
+      throw new Error("hn course shows fbp progress — courses not isolated");
+    console.log("✓ one account, two courses, separate progress");
+    await page.goto(BASE + "/fbp-course/");
+
     // Wrong password shows an error in the modal.
     await page.click("#signOutBtn");
     await page.waitForSelector("#signInBtn");
