@@ -1,7 +1,8 @@
-# Course export pack — The Finance Business Partner's Playbook
+# Course export pack — The Human Nature Playbook
 
-Generated from `fbp-course/js/content.js` by `tools/export-course.js`.
-Re-run that script after any content change to regenerate this pack.
+Generated from `hn-course/js/content.js` by
+`node tools/export-course.js hn-course`.
+Re-run after any content change to regenerate this pack.
 
 ## What's here
 

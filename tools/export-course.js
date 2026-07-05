@@ -1,7 +1,7 @@
-/* Export the FBP course content into hosted-LMS-ready formats.
+/* Export a course's content into hosted-LMS-ready formats.
 
-   Reads fbp-course/js/content.js (single source of truth) and writes
-   course-export/:
+   Reads <course-dir>/js/content.js (single source of truth) and writes
+   course-export/<name>/:
      lessons/    — clean semantic HTML per lesson (paste into Thinkific /
                    LearnWorlds text lessons; they inherit platform styling)
      modules/    — module overview + workshop pages
@@ -12,7 +12,8 @@
      README.md   — step-by-step platform setup guide
      certificate.md — certificate wording
 
-   Run: node tools/export-course.js   (regenerates everything) */
+   Run: node tools/export-course.js [course-dir]     (default: fbp-course)
+        node tools/export-course.js hn-course          (the Human Nature course) */
 
 "use strict";
 
@@ -20,10 +21,16 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const OUT = path.join(ROOT, "course-export");
+const COURSE_DIR_NAME = process.argv[2] || "fbp-course";
+const CONTENT_FILE = path.join(ROOT, COURSE_DIR_NAME, "js", "content.js");
+if (!fs.existsSync(CONTENT_FILE)) {
+  console.error(`No course content at ${CONTENT_FILE}`);
+  process.exit(1);
+}
+const OUT = path.join(ROOT, "course-export", COURSE_DIR_NAME.replace(/-course$/, ""));
 
 const COURSE = (() => {
-  const src = fs.readFileSync(path.join(ROOT, "fbp-course", "js", "content.js"), "utf8");
+  const src = fs.readFileSync(CONTENT_FILE, "utf8");
   return new Function(src + "; return COURSE;")();
 })();
 
@@ -177,18 +184,18 @@ has completed the seven-week course
 
 **${COURSE.title}**
 
-covering the foundations of finance business partnering, turning analysis into
-insight and influence, and advising with a strategic lens — including three
-applied workshops, a capstone business scenario, and a final assessment across
-all modules.
+covering ${COURSE.modules.map(m => m.title.toLowerCase()).join("; ")} —
+including three applied workshops, a capstone scenario, and a final
+assessment across all modules.
 
 *Completed [date]*
 `);
 
 write("README.md", `# Course export pack — ${COURSE.title}
 
-Generated from \`fbp-course/js/content.js\` by \`tools/export-course.js\`.
-Re-run that script after any content change to regenerate this pack.
+Generated from \`${COURSE_DIR_NAME}/js/content.js\` by
+\`node tools/export-course.js ${COURSE_DIR_NAME}\`.
+Re-run after any content change to regenerate this pack.
 
 ## What's here
 
