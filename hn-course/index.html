@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Human Nature Playbook — 7-Week Course</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">🧠</span>
+      <div>
+        <div class="brand-name">The Human Nature Playbook</div>
+        <div class="brand-sub">a 7-week course · attention, story and influence</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="account" id="accountBox"></div>
+      <div class="progress-pill" id="progressPill"></div>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-view="dashboard">Dashboard</button>
+    <button class="tab" data-view="m1">Module 1</button>
+    <button class="tab" data-view="m2">Module 2</button>
+    <button class="tab" data-view="m3">Module 3</button>
+    <button class="tab" data-view="capstone">Capstone</button>
+    <button class="tab" data-view="certificate">Certificate</button>
+  </nav>
+</header>
+
+<main id="main" class="main"></main>
+
+<footer class="footer">
+  Your progress is saved in this browser only.
+  <button class="linklike" id="exportBtn">Export backup</button>
+  · <button class="linklike" id="importBtn">Import backup</button>
+  · <button class="linklike danger" id="resetBtn">Reset progress</button>
+  <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+</footer>
+
+<!-- Onboarding -->
+<div class="modal-backdrop hidden" id="onboarding">
+  <div class="modal">
+    <h2>Welcome to the course</h2>
+    <p>Over the next seven weeks you'll learn how minds actually work — what earns
+    their <strong>attention, trust and action</strong> — and how to use that power
+    honestly. Three modules, three applied workshops, a capstone launch scenario,
+    a final assessment — and a certificate of completion at the end.</p>
+    <label class="field">
+      <span>Your name (it goes on the certificate)</span>
+      <input type="text" id="obName" placeholder="Your full name" maxlength="60">
+    </label>
+    <button class="btn primary" id="obStart">Start Week 1</button>
+    <p class="small hidden" id="obAuthRow" style="margin-top:12px">
+      <button class="linklike" id="obAuth">Have an account, or want progress saved across devices? Sign in / Register</button>
+    </p>
+  </div>
+</div>
+
+<!-- Sign in / register (only shown when the app is served by the LMS) -->
+<div class="modal-backdrop hidden" id="authModal">
+  <div class="modal">
+    <h2 id="authTitle">Sign in</h2>
+    <p id="authBlurb">Your progress is saved to your account and follows you across devices.
+    Certificates earned while signed in get a verification code.</p>
+    <label class="field hidden" id="authNameField">
+      <span>Your name (it goes on the certificate)</span>
+      <input type="text" id="authName" maxlength="80" autocomplete="name">
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" id="authEmail" autocomplete="email">
+    </label>
+    <label class="field hidden" id="authCodeField">
+      <span>Reset code (ask your course admin — it shows on their dashboard)</span>
+      <input type="text" id="authCode" maxlength="16" autocomplete="one-time-code" style="text-transform:uppercase">
+    </label>
+    <label class="field">
+      <span id="authPassLabel">Password <span id="authPassHint" class="hidden">(8+ characters)</span></span>
+      <input type="password" id="authPass" autocomplete="current-password">
+    </label>
+    <p class="auth-error hidden" id="authError"></p>
+    <p class="auth-info hidden" id="authInfo"></p>
+    <div class="row-buttons">
+      <button class="btn primary" id="authSubmit">Sign in</button>
+      <button class="btn" id="authCancel">Cancel</button>
+    </div>
+    <p class="small" style="margin-top:12px">
+      <button class="linklike" id="authToggle">New here? Create an account</button>
+      <button class="linklike" id="authForgot" style="margin-left:10px">Forgot password?</button>
+    </p>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

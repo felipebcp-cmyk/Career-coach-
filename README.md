@@ -1,10 +1,12 @@
 # Rekindle — Burnout Recovery & Career Coach
 
-> **Also in this repo:** [`fbp-course/`](fbp-course/) — *The Finance Business
-> Partner's Playbook*, a 7-week interactive course app (lessons, workshops,
-> quizzes, capstone scenario, final assessment, printable certificate) — and
-> [`lms/`](lms/) — a zero-dependency LMS server for it (accounts, progress
-> tracking, auto-certificates with verification, admin dashboard).
+> **Also in this repo:** two 7-week interactive course apps —
+> [`fbp-course/`](fbp-course/) *The Finance Business Partner's Playbook* and
+> [`hn-course/`](hn-course/) *The Human Nature Playbook* (lessons, workshops,
+> quizzes, capstone scenario, final assessment, printable certificate) — plus
+> [`lms/`](lms/) — a zero-dependency LMS server (accounts, progress tracking,
+> auto-certificates with verification, admin dashboard) and [`site/`](site/),
+> the marketing front door.
 
 A private, local-first coaching app for someone who recently quit a finance job due to
 burnout. It walks them through a **12-week program — Recover → Reflect → Rebuild →

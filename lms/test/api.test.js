@@ -76,6 +76,8 @@ async function main() {
     ok(app.status === 200 && app.text.includes("Finance Business Partner's Playbook") && app.text.includes("js/app.js"), "serves the course app at /fbp-course/");
     ok((await req("GET", "/fbp-course/js/app.js")).status === 200, "serves course static js");
     ok((await req("GET", "/course")).status === 302, "/course redirects to the app");
+    const hn = await req("GET", "/hn-course/");
+    ok(hn.status === 200 && hn.text.includes("Human Nature Playbook"), "serves the Human Nature course at /hn-course/");
     ok((await req("GET", "/../lms/server.js")).status === 404, "blocks path traversal (site root)");
     ok((await req("GET", "/fbp-course/../lms/server.js")).status === 404, "blocks path traversal (course root)");
 

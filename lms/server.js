@@ -24,6 +24,7 @@ const DB_PATH = process.env.LMS_DB || path.join(__dirname, "lms.sqlite");
 const SECURE = process.env.LMS_SECURE === "1";
 const COURSE_DIR = path.join(__dirname, "..", "fbp-course");
 const SITE_DIR = path.join(__dirname, "..", "site");
+const HN_DIR = path.join(__dirname, "..", "hn-course");
 const SESSION_DAYS = 30;
 const MAX_BODY = 200 * 1024;
 
@@ -444,6 +445,12 @@ function serveStatic(res, urlPath) {
   if (p === "/fbp-course" || p.startsWith("/fbp-course/")) {
     base = COURSE_DIR;
     p = p.slice("/fbp-course".length) || "/";
+  }
+  // The Human Nature course is served too, in guest mode: its app only syncs
+  // accounts with an LMS whose /api/health reports its own course title.
+  if (p === "/hn-course" || p.startsWith("/hn-course/")) {
+    base = HN_DIR;
+    p = p.slice("/hn-course".length) || "/";
   }
   if (p.endsWith("/")) p += "index.html";
   const file = path.normalize(path.join(base, p));

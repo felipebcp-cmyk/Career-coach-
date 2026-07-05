@@ -1,4 +1,4 @@
-/* Finance Business Partnering course — app logic.
+/* Human Nature course — app logic.
    Vanilla JS single-page app; state persisted under one localStorage key.
    Views and open lessons live in the URL hash (#m2/m2l3); in-progress quiz
    attempts are in-memory only and guarded against accidental navigation. */
@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "fbpcourse.v1";
+  const STORE_KEY = "hncourse.v1";
   const WORKSHOP_MIN = 40;   // chars of saved deliverable for a workshop to count
   const TASK_MIN = 80;       // chars per capstone task to unlock the assessment
 
@@ -454,9 +454,9 @@
     main.innerHTML = `
       <section class="hero card">
         <h1>Welcome back, ${name}.</h1>
-        <p>This course takes you from producing reports to shaping decisions:
-        <strong>foundations → analysis to influence → the advisor's seat</strong>,
-        then a capstone scenario and final assessment. Finish it all and you earn
+        <p>This course takes you from being ignored to being understood:
+        <strong>the story engine → the five levers → influence in practice</strong>,
+        then a capstone launch scenario and final assessment. Finish it all and you earn
         your certificate of completion.</p>
         <div class="meter big"><div class="meter-fill" style="width:${pct}%"></div></div>
         <div class="muted small">${pct}% of the course complete${state.completedAt ? " · certified " + new Date(state.completedAt).toLocaleDateString() : ""}</div>
@@ -467,8 +467,8 @@
         <div class="card module-card" data-goto="capstone">
           <div class="module-week">${esc(COURSE.capstone.weeks)}</div>
           <h3>${esc(COURSE.capstone.title)}</h3>
-          <p class="muted">One applied scenario — a real partnering decision from problem
-          statement to one-page recommendation — then the final assessment:
+          <p class="muted">One applied scenario — a real product launch taken from awareness
+          diagnosis to an ethical persuasion plan — then the final assessment:
           ${COURSE.capstone.assessment.count} questions from all modules,
           ${Math.round(COURSE.capstone.assessment.passMark * 100)}% to pass.</p>
           <div class="card-foot">${capStatus}</div>
@@ -832,10 +832,10 @@
           <h1 class="cert-name">${esc(state.name || "Course Participant")}</h1>
           <p class="cert-body">has completed the seven-week course</p>
           <h2 class="cert-course">${esc(COURSE.title)}</h2>
-          <p class="cert-body">covering the foundations of finance business partnering,
-          turning analysis into insight and influence, and advising with a strategic
-          lens — including three applied workshops, a capstone business scenario,
-          and a final assessment across all modules.</p>
+          <p class="cert-body">covering the story engine and the three tensions, the five levers of
+          attention and persuasion, and influence in practice — ethics, reality
+          and mastery — including three applied workshops, a capstone launch
+          scenario, and a final assessment across all modules.</p>
           <div class="cert-scores">${esc(scores)}</div>
           <div class="cert-date">Completed ${esc(date)}</div>
         </div>
@@ -895,7 +895,7 @@
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "fbp-course-backup.json";
+      a.download = "hn-course-backup.json";
       a.click();
       URL.revokeObjectURL(a.href);
     });
