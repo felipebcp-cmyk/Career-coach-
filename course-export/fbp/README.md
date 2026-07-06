@@ -8,9 +8,9 @@ Re-run after any content change to regenerate this pack.
 
 | Folder | Contents | Use |
 |---|---|---|
-| `lessons/` | 13 lesson pages as clean HTML | Paste into text/HTML lessons |
+| `lessons/` | 15 lesson pages as clean HTML | Paste into text/HTML lessons |
 | `modules/` | Module overviews + the 3 workshops | Chapter intros & assignments |
-| `quizzes/` | Each knowledge check + the 32-question final pool, in `.gift` / `.csv` / `.md` | Quiz import or manual entry |
+| `quizzes/` | Each knowledge check + the 36-question final pool, in `.gift` / `.csv` / `.md` | Quiz import or manual entry |
 | `capstone/` | Scenario + 4 written tasks | Lesson + assignment |
 | `certificate.md` | Certificate wording | Certificate template text |
 

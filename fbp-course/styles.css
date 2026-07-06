@@ -282,6 +282,69 @@ p { margin: 8px 0; }
 .takeaways li { margin: 4px 0; }
 .lesson-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 
+/* ---------- lesson blocks: example, mistakes, exercise, sources ---------- */
+
+.block-tag {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 6px;
+}
+.case-block {
+  background: #fbf7ee;
+  border: 1px solid #eadfc4;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 22px 0;
+}
+.case-block h3 { margin-top: 2px; color: var(--ink); }
+.mistakes-block {
+  border-left: 4px solid var(--bad);
+  background: var(--bad-bg);
+  border-radius: 0 10px 10px 0;
+  padding: 12px 18px;
+  margin: 22px 0;
+}
+.mistakes-block h3 { margin-top: 0; color: var(--bad); }
+.mistakes-block ul { margin: 6px 0 4px 18px; }
+.mistakes-block li { margin: 5px 0; }
+.exercise-block {
+  border: 2px dashed var(--brand);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 22px 0;
+  background: #f4f9fa;
+}
+.exercise-block .block-tag { color: var(--brand); }
+.sources-block {
+  margin: 18px 0 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.sources-block h3 { font-size: 13.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.sources-block ul { margin: 8px 0 0 18px; }
+.sources-block li { font-size: 14px; color: var(--muted); margin: 5px 0; }
+.sources-block strong { color: var(--ink); }
+
+/* ---------- module toolkit ---------- */
+
+.tool-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 12px 4px; border-bottom: 1px solid var(--line);
+}
+.tool-row:last-child { border-bottom: none; }
+.tool-title { font-weight: 600; }
+.btn.small { padding: 7px 14px; font-size: 13px; margin-top: 0; }
+
+/* ---------- capstone marking guide ---------- */
+
+details.guide { margin: 2px 0 10px; }
+details.guide summary {
+  cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--brand);
+}
+details.guide p {
+  font-size: 14px; color: var(--muted);
+  background: var(--bg); border-radius: 8px; padding: 10px 14px; margin-top: 8px;
+}
+
 /* ---------- quiz ---------- */
 
 .quiz-q { margin: 20px 0; }

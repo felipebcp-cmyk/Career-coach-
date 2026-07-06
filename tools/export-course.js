@@ -68,11 +68,23 @@ function lessonHtml(mod, lesson, mi, li) {
 <p><em>Module ${mi + 1} — ${escHtml(mod.title)} · Lesson ${li + 1} of ${mod.lessons.length} · ~${lesson.minutes} min read</em></p>
 
 ${sections}
-<h2>Key takeaways</h2>
+${lesson.example ? `<h2>Worked example: ${escHtml(lesson.example.title)}</h2>
+${lesson.example.body.map(p => `<p>${escHtml(p)}</p>`).join("\n")}
+` : ""}${lesson.mistakes ? `<h2>Where this goes wrong</h2>
+<ul>
+${lesson.mistakes.map(x => `  <li>${escHtml(x)}</li>`).join("\n")}
+</ul>
+` : ""}${lesson.exercise ? `<h2>Do this now (~${lesson.exercise.minutes} min)</h2>
+<p><em>${escHtml(lesson.exercise.prompt)}</em></p>
+` : ""}<h2>Key takeaways</h2>
 <ul>
 ${lesson.takeaways.map(t => `  <li>${escHtml(t)}</li>`).join("\n")}
 </ul>
-`;
+${lesson.sources ? `<h2>Where this comes from</h2>
+<ul>
+${lesson.sources.map(s => `  <li><strong>${escHtml(s.name)}</strong> — ${escHtml(s.note)}</li>`).join("\n")}
+</ul>
+` : ""}`;
 }
 
 function moduleOverviewHtml(mod, mi) {
@@ -111,7 +123,7 @@ function capstoneHtml() {
 <p>${escHtml(cap.scenario)}</p>
 <h2>Applied tasks</h2>
 <ol>
-${cap.tasks.map(t => `  <li><strong>${escHtml(t.title)}.</strong> ${escHtml(t.prompt)}</li>`).join("\n")}
+${cap.tasks.map(t => `  <li><strong>${escHtml(t.title)}.</strong> ${escHtml(t.prompt)}${t.guide ? `<br><em>Marking guide: ${escHtml(t.guide)}</em>` : ""}</li>`).join("\n")}
 </ol>
 <p><em>Each task deserves a genuine written attempt — a couple of sentences at
 minimum — before the final assessment.</em></p>
@@ -146,7 +158,19 @@ function toMd(title, questions, passMark) {
     ).join("\n") + "\n";
 }
 
-function writeQuiz(base, title, questions, passMark) {
+/* The web app shuffles options per attempt, but exported files are static —
+   rotate options deterministically so correct letters spread across A–D
+   instead of clustering on the position the author favoured. */
+function rotateOptions(questions) {
+  return questions.map((q, i) => {
+    const rot = i % 4;
+    const options = q.options.map((_, j) => q.options[(j + rot) % 4]);
+    return Object.assign({}, q, { options, answer: (q.answer - rot + 4) % 4 });
+  });
+}
+
+function writeQuiz(base, title, rawQuestions, passMark) {
+  const questions = rotateOptions(rawQuestions);
   write(`quizzes/${base}.gift`, toGift(title, questions));
   write(`quizzes/${base}.csv`, toCsv(questions));
   write(`quizzes/${base}.md`, toMd(title, questions, passMark));
@@ -165,6 +189,12 @@ COURSE.modules.forEach((mod, mi) => {
   });
   writeQuiz(`module-${mi + 1}-knowledge-check`, `Module ${mi + 1} — ${mod.title}: knowledge check`,
     mod.quiz.questions, COURSE.passMark);
+});
+
+COURSE.modules.forEach((mod, mi) => {
+  (mod.tools || []).forEach(tool => {
+    write(`tools/${tool.id}.md`, `<!-- Module ${mi + 1} tool: ${tool.title} — offer as a downloadable resource -->\n` + tool.body);
+  });
 });
 
 write("capstone/capstone-scenario-and-tasks.html", capstoneHtml());

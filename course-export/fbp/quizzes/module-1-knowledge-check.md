@@ -13,28 +13,28 @@ Pass mark: 80%. Correct answers are **bold**.
 
 **2. A business partner's analysis was accurate but nobody acted on it. The partnering mindset says:**
 
-- The job is done — acting on it is the business's responsibility
 - **Treat it as a failure worth diagnosing: message, timing, audience or missing recommendation** ✓
 - Escalate to the CFO that the business ignored finance
 - Send the same report again with more data attached
+- The job is done — acting on it is the business's responsibility
 
 > Partners own the outcome, not just the report. If insight didn't land, diagnose why — clarity, timing, audience, or the absence of a clear recommendation.
 
 **3. Which is the best example of a leading indicator?**
 
-- Last quarter's net profit
-- Prior-year revenue growth
 - **Sales pipeline coverage for next quarter** ✓
 - Last month's actual costs versus budget
+- Last quarter's net profit
+- Prior-year revenue growth
 
 > Pipeline tells you what's about to happen. Profit, prior-year growth and actuals are all lagging — they report what already occurred.
 
 **4. In the trust equation, which factor reduces trust as it increases?**
 
+- **Self-orientation** ✓
 - Credibility
 - Reliability
 - Closeness
-- **Self-orientation** ✓
 
 > Trust = (credibility + reliability + closeness) ÷ self-orientation. The more stakeholders sense you're playing for your own scoreboard, the more everything else is discounted.
 
@@ -45,32 +45,50 @@ Pass mark: 80%. Correct answers are **bold**.
 - Tracking which stakeholders attend your meetings
 - Allocating overheads across cost centres
 
-> A driver tree decomposes a financial result into operational drivers — it translates finance goals into levers the business can actually pull.
+> A driver tree decomposes a financial result into operational drivers — with sensitivities, it ranks the levers the business can actually pull.
 
 **6. A stakeholder is high-influence but you've never properly engaged them. The stakeholder map says this is:**
 
-- Fine — engage only when they contact finance
 - **Your biggest relationship-building opportunity, to be pursued deliberately** ✓
 - A risk to be escalated to your manager
 - Someone to copy on all reports from now on
+- Fine — engage only when they contact finance
 
 > High-influence stakeholders with weak relationships are exactly where deliberate investment pays off. Copying them on reports is noise, not relationship.
 
 **7. 'Roughly right and on time beats precisely right and too late' is a principle about:**
 
-- Lowering accounting standards for reported results
-- **Giving decision-useful views with stated assumptions when decisions can't wait** ✓
 - Avoiding detailed analysis altogether
 - Always using last year's numbers as a proxy
+- Lowering accounting standards for reported results
+- **Giving decision-useful views with stated assumptions when decisions can't wait** ✓
 
 > It applies to decision support, not statutory reporting: give a view with ranges and assumptions when the decision is now. Rigour still matters — precision theatre doesn't.
 
 **8. Why do 'deposits' matter in stakeholder relationships?**
 
+- They are required by professional standards
 - They guarantee stakeholders will always agree with finance
 - **Consistent small acts of usefulness build the balance you draw on when you must challenge or say no** ✓
 - They replace the need for formal reporting
-- They are required by professional standards
 
 > Influence works like a bank account: challenge and bad news are withdrawals, and they only land well if you've built a balance of usefulness first.
+
+**9. Your month is 70% production, 20% commentary, 10% partnering, and you've been told to 'be more strategic'. The operating-model lesson says the first move is:**
+
+- **Kill, shrink or automate the lowest-value recurring outputs — then immediately rebook the freed hours with stakeholders** ✓
+- Work extra hours until partnering fits around the reporting load
+- Wait for the next reorganisation to change the role formally
+- Delegate all reporting to junior staff without changing the outputs
+
+> No mindset survives a 70/20/10 calendar. Buy hours by killing unread outputs, shrinking packs and automating assembly — and rebook the hours visibly before production reabsorbs them.
+
+**10. The most credible way to measure a business-partnering function is:**
+
+- Number of reports issued per month
+- Headcount cost of the finance team versus benchmark
+- **Decision participation, forecast reliability (bias and range honesty) and the stakeholders' own verdict** ✓
+- Close timeliness and report accuracy alone
+
+> What gets measured is what the role becomes. Close speed and accuracy measure the scorekeeper; decisions touched, calibrated forecasts and stakeholder feedback measure the partner.
 

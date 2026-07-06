@@ -13,28 +13,28 @@ Pass mark: 80%. Correct answers are **bold**.
 
 **2. Two projects have identical NPVs. The strategic lens says:**
 
-- They are equivalent — approve whichever is cheaper to run
 - **Prefer the one that strengthens where the business wins over the side bet, and say so** ✓
 - Reject both, since identical NPVs suggest modelling error
 - Approve both to be safe
+- They are equivalent — approve whichever is cheaper to run
 
 > NPV alone is blind to strategic fit. A project that builds the competitive moat is a different decision from one with the same NPV that doesn't.
 
 **3. A good problem statement includes:**
 
-- The full history of the issue over five years
-- **The decision to be made, the deadline, and the essential context** ✓
 - The answer you expect the analysis to reach
 - Every stakeholder's opinion recorded verbatim
+- The full history of the issue over five years
+- **The decision to be made, the deadline, and the essential context** ✓
 
 > Decision, deadline, context — one sentence. It scopes the analysis and prevents solving the wrong problem well.
 
 **4. Revenue fell because deliveries were late because a supplier changed spec after procurement switched to save 3%. The root-cause fix is:**
 
+- Report the variance and move on
 - Discount prices to win the volume back
 - Increase the revenue forecast to compensate
 - **Fix supplier qualification in procurement** ✓
-- Report the variance and move on
 
 > Fix where the causal chain starts. Discounting treats the symptom and adds a margin problem to the volume problem.
 
@@ -49,28 +49,46 @@ Pass mark: 80%. Correct answers are **bold**.
 
 **6. A pre-mortem asks:**
 
-- 'What is the NPV under the base case?'
 - **'It's two years on and this decision failed — what killed it?'** ✓
 - 'Who should be blamed if this fails?'
 - 'What does the auditor think?'
+- 'What is the NPV under the base case?'
 
 > Imagining the failure as already having happened licenses people to name risks they'd never raise as objections — and the mitigations strengthen the recommendation.
 
 **7. Presenting three options with no recommendation is:**
 
-- Best practice — the choice belongs to the business
-- **Unfinished partnering work: stakeholders may disagree with your view, but shouldn't have to guess it** ✓
 - Required for governance reasons
 - Appropriate whenever the decision is difficult
+- Best practice — the choice belongs to the business
+- **Unfinished partnering work: stakeholders may disagree with your view, but shouldn't have to guess it** ✓
 
 > Options without a view is analysis, not partnering. Commit to a recommendation with reasons; the decision still belongs to the decision-maker.
 
 **8. A stakeholder pushes back hard on your analysis. The partner's first move is:**
 
+- Withdraw the analysis to keep the relationship
 - Restate the conclusion more firmly
 - **Ask 'what am I missing?' and genuinely examine their information** ✓
 - Escalate the disagreement immediately
-- Withdraw the analysis to keep the relationship
 
 > Curiosity first. If their information is new and real, update visibly — that builds credibility. If not, hold your view calmly and document both positions for the decision-maker.
+
+**9. The forecast, the target and the budget should be:**
+
+- **Three distinct numbers: the honest prediction, the aspiration, and the spending permission** ✓
+- One aligned number, to keep the organisation consistent
+- Whatever the board prefers to see
+- Set by negotiation between finance and each cost centre
+
+> Forcing one number to do all three jobs destroys the honest picture: forecasts get negotiated to protect targets and sandbagged to protect bonuses. Three words, three jobs.
+
+**10. What converts a scenario exercise from a workshop into a management tool?**
+
+- Extending the scenarios to a ten-year horizon
+- Presenting the scenarios to the board annually
+- **Named triggers with pre-agreed, pre-approved responses and owners** ✓
+- More detailed narratives for each scenario
+
+> Scenarios with observable triggers and drawer-ready responses convert future panic into present procedure. Without triggers, scenarios are literature.
 

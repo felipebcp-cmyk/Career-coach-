@@ -2,8 +2,15 @@
 
 An original, self-contained interactive course for accountants and finance
 professionals who want to move from technical contributor to trusted advisor —
-shaping decisions instead of just reporting on them. All lesson content,
-exercises and assessments are written for this app.
+shaping decisions instead of just reporting on them. All content is written
+for this app. Every lesson carries the full anatomy: core teaching, a worked
+example with real numbers, a "where this goes wrong" list, a do-it-now
+exercise, key takeaways, and named sources for further reading. Each module
+ships three downloadable templates (9 in total — stakeholder map & trust
+ledger, driver tree, partnering contract, commentary template, chart
+checklist, influence plan, one-page recommendation, pre-mortem script,
+scenario & trigger planner), and every capstone task includes a marking
+guide.
 
 Runs in two modes:
 
@@ -29,9 +36,9 @@ python3 -m http.server 8080
 
 | Weeks | Stage | Contents |
 |---|---|---|
-| 1–2 | **Module 1 — Foundations: Thinking Like a Partner** | 4 lessons: the partner's role, the mindset shift, business models & driver trees, stakeholders & the trust equation. Workshop 1 + knowledge check. |
-| 3–4 | **Module 2 — From Analysis to Influence** | 5 lessons: the insight ladder, storytelling with numbers, non-finance audiences, making numbers visible, influencing without authority. Workshop 2 + knowledge check. |
-| 5–6 | **Module 3 — The Advisor's Seat: Strategy, Decisions and Hard Calls** | 4 lessons: the strategic lens, human-centred problem solving, confident recommendations under uncertainty, hard conversations. Workshop 3 + knowledge check. |
+| 1–2 | **Module 1 — Foundations: Thinking Like a Partner** | 5 lessons: the partner's role, the mindset shift, business models & driver trees, stakeholders & the trust equation, the operating model (buying back the hours). Workshop 1 + toolkit + knowledge check. |
+| 3–4 | **Module 2 — From Analysis to Influence** | 5 lessons: the insight ladder, storytelling with numbers, non-finance audiences, making numbers visible, influencing without authority. Workshop 2 + toolkit + knowledge check. |
+| 5–6 | **Module 3 — The Advisor's Seat: Strategy, Decisions and Hard Calls** | 5 lessons: the strategic lens, human-centred problem solving, confident recommendations under uncertainty, hard conversations, forecasts & scenarios that get used. Workshop 3 + toolkit + knowledge check. |
 | 7 | **Capstone — The Harbourline Decision** | An applied business scenario (4 written tasks), then the final assessment. |
 
 ## Assessment
