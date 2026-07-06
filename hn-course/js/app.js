@@ -545,6 +545,21 @@
         <button class="btn" id="wsSave">Save workshop notes</button>
       </section>
 
+      ${mod.tools ? `
+      <section class="card">
+        <h3>Module toolkit</h3>
+        <p class="muted small">Downloadable templates — fill them in during the workshop, then keep
+        them in your working week. Plain markdown: open anywhere, paste into anything.</p>
+        ${mod.tools.map(t => `
+        <div class="tool-row">
+          <div>
+            <div class="tool-title">${esc(t.title)}</div>
+            <div class="muted small">${esc(t.desc)}</div>
+          </div>
+          <button class="btn small" data-tool="${t.id}">Download</button>
+        </div>`).join("")}
+      </section>` : ""}
+
       <section class="card">
         <h3>${esc(mod.quiz.title)}</h3>
         <p class="muted">${mod.quiz.questions.length} questions · pass mark ${Math.round(COURSE.passMark * 100)}% ·
@@ -564,6 +579,17 @@
       toast(workshopDone(mod.id) ? "Workshop notes saved — counted toward progress." : "Workshop notes saved.");
       renderModule(mod);
     });
+
+    main.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
+      const tool = mod.tools.find(x => x.id === b.dataset.tool);
+      const blob = new Blob([tool.body], { type: "text/markdown" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = tool.id + ".md";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast("Downloaded " + tool.title + ".");
+    }));
 
     const qs = $("#quizStart");
     if (qs) qs.addEventListener("click", () => {
@@ -604,10 +630,31 @@
         <div class="muted small">Lesson ${li + 1} of ${mod.lessons.length} · ~${l.minutes} min</div>
         <h1>${esc(l.title)}</h1>
         ${sections}
+        ${l.example ? `
+        <div class="case-block">
+          <div class="block-tag">Worked example</div>
+          <h3>${esc(l.example.title)}</h3>
+          ${l.example.body.map(p => `<p>${esc(p)}</p>`).join("")}
+        </div>` : ""}
+        ${l.mistakes ? `
+        <div class="mistakes-block">
+          <h3>Where this goes wrong</h3>
+          <ul>${l.mistakes.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        </div>` : ""}
+        ${l.exercise ? `
+        <div class="exercise-block">
+          <div class="block-tag">Do this now · ~${l.exercise.minutes} min</div>
+          <p>${esc(l.exercise.prompt)}</p>
+        </div>` : ""}
         <div class="takeaways">
           <h3>Key takeaways</h3>
           <ul>${l.takeaways.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
         </div>
+        ${l.sources ? `
+        <div class="sources-block">
+          <h3>Where this comes from</h3>
+          <ul>${l.sources.map(s => `<li><strong>${esc(s.name)}</strong> — ${esc(s.note)}</li>`).join("")}</ul>
+        </div>` : ""}
         <div class="lesson-actions">
           <button class="btn primary" id="doneBtn">${done ? "✓ Completed — mark again" : "Mark lesson complete"}</button>
           ${next ? `<button class="btn" id="nextBtn">Next lesson →</button>` : ""}
@@ -747,6 +794,7 @@
           <span>${esc(t.prompt)}</span>
           <textarea data-task="${t.id}" rows="4" placeholder="Write your response…">${esc(state.capstoneTasks[t.id] || "")}</textarea>
         </label>
+        ${t.guide ? `<details class="guide"><summary>What a strong answer covers</summary><p>${esc(t.guide)}</p></details>` : ""}
       </div>`).join("");
 
     const best = state.quizScores["capstone"];

@@ -72,6 +72,19 @@ the attempt. State is one `localStorage` key, sanitized against the current
 course content on load, with export **and import** of JSON backups in the
 footer.
 
+## Version, review & CPD statement
+
+- **Content version:** 2.0 (executive edition) · **Last reviewed:** July 2026 ·
+  **Review cycle:** every 6 months (sources re-checked, examples refreshed).
+- **CPD guidance:** ~14–18 hours total time-on-task (lessons incl. exercises
+  ~15 min × 15, workshops 1–2 h × 3, capstone + assessment 2–3 h), evidenced by
+  in-repo word-count and exercise-timing measurements. Self-paced study is
+  typically **non-verifiable CPD**; completion becomes **verifiable** when run
+  through the LMS (server-issued, publicly checkable certificate with scores).
+  Check your professional body's own rules before claiming.
+- Content is jurisdiction-neutral by design: no tax, accounting-standard or
+  regulatory claims are made.
+
 ## Tests
 
 `node test/e2e.js` drives the full journey (onboarding → lessons → workshops →

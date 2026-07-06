@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Audit Tool — weighted /10 with gates</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+<style>
+  :root {
+    --bg:#f4f6f9; --card:#fff; --ink:#1c2733; --muted:#5b6b7c; --line:#dfe6ee;
+    --brand:#0e5a6d; --gold:#c98a12; --good:#1c7a4d; --good-bg:#e7f5ed;
+    --bad:#b3372f; --bad-bg:#fbebe9; --warn-bg:#fdf3df;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--ink); line-height:1.55; padding:24px 16px 80px; }
+  .wrap { max-width:900px; margin:0 auto; }
+  h1 { font-size:24px; } h2 { font-size:17px; }
+  .sub { color:var(--muted); font-size:14px; margin:6px 0 18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:14px; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .meta label { font-size:12.5px; font-weight:600; color:var(--muted); display:block; }
+  .meta input { width:100%; font:inherit; font-size:14px; padding:7px 10px; border:1px solid var(--line); border-radius:8px; }
+  .domain-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .domain-head h2 { flex:1; }
+  .weight { font-size:12px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+  .gate-tag { font-size:11px; font-weight:800; letter-spacing:.08em; padding:2px 8px; border-radius:999px; background:var(--warn-bg); color:#8a6410; }
+  .gate-tag.pass { background:var(--good-bg); color:var(--good); }
+  .gate-tag.fail { background:var(--bad-bg); color:var(--bad); }
+  .crit { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px dashed var(--line); }
+  .crit:last-of-type { border-bottom:none; }
+  .crit-label { flex:1; font-size:14.5px; }
+  .score-btns { display:flex; gap:4px; }
+  .score-btns button {
+    width:34px; height:34px; border-radius:8px; border:1px solid var(--line); background:#fbfcfe;
+    font:inherit; font-size:14px; font-weight:700; cursor:pointer; color:var(--muted);
+  }
+  .score-btns button:hover { border-color:var(--brand); }
+  .score-btns button.sel { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .domain-foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:13.5px; color:var(--muted); flex-wrap:wrap; gap:8px; }
+  .na-row label { font-size:13px; color:var(--muted); cursor:pointer; }
+  .na-note { width:100%; font:inherit; font-size:13px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; margin-top:6px; }
+  .scorebar { position:sticky; top:0; z-index:10; background:var(--ink); color:#fff; border-radius:12px;
+              padding:14px 20px; margin-bottom:16px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .big-score { font-size:34px; font-weight:800; line-height:1; }
+  .big-score small { font-size:15px; font-weight:600; opacity:.7; }
+  .verdict { font-size:14px; font-weight:700; padding:5px 14px; border-radius:999px; }
+  .verdict.pass { background:var(--good); }
+  .verdict.fail { background:var(--bad); }
+  .verdict.pending { background:#5b6b7c; }
+  .gates-mini { font-size:12.5px; opacity:.85; flex:1; min-width:200px; }
+  .btnrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+  .btn { font:inherit; font-size:14px; font-weight:600; padding:9px 18px; border-radius:8px;
+         border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .btn.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .rubric { font-size:12.5px; color:var(--muted); }
+  .desc { font-size:13px; color:var(--muted); margin:4px 0 10px; }
+  .dscore { font-weight:700; color:var(--ink); }
+  @media print { .scorebar { position:static; } .btnrow, .score-btns { display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Course Audit Tool</h1>
+  <p class="sub">Score each criterion 0–4. The weighted /10 computes live; gated domains must average
+  ≥ 3.0 or the verdict fails regardless of score. Rubric: <strong>0</strong> absent ·
+  <strong>1</strong> poor · <strong>2</strong> partial · <strong>3</strong> good · <strong>4</strong> exemplary.
+  Mark a domain N/A (with justification) to redistribute its weight.</p>
+
+  <div class="scorebar">
+    <div><div class="big-score" id="score">–<small>/10</small></div></div>
+    <div class="gates-mini" id="gatesMini"></div>
+    <div class="verdict pending" id="verdict">incomplete</div>
+  </div>
+
+  <div class="card">
+    <div class="meta">
+      <div><label>Course</label><input id="mCourse" placeholder="Course name"></div>
+      <div><label>Auditor</label><input id="mAuditor" placeholder="Who is scoring"></div>
+      <div><label>Date</label><input id="mDate" type="date"></div>
+      <div><label>Jurisdiction / standards context</label><input id="mJuris" placeholder="e.g. AU tax, IFRS, none (soft skills)"></div>
+    </div>
+  </div>
+
+  <div id="domains"></div>
+
+  <div class="card">
+    <h2>Auditor notes</h2>
+    <textarea id="mNotes" class="na-note" rows="4" placeholder="Key findings, conditions, follow-ups…"></textarea>
+    <div class="btnrow">
+      <button class="btn primary" id="exportBtn">Export report (.md)</button>
+      <button class="btn" onclick="window.print()">Print</button>
+      <button class="btn" id="resetBtn">Reset scores</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const DOMAINS = [
+  { id:"outcomes", name:"Learning outcomes & structure", weight:15, gate:false,
+    desc:"Specific, measurable outcomes mapped to a competency framework, with realistic scope.",
+    criteria:[
+      "Outcomes are specific and measurable (a marker could verify each)",
+      "Outcomes map to a recognised competency framework or role definition",
+      "Module/lesson structure visibly serves the outcomes (no orphan content)",
+      "Scope is realistic for the stated duration and audience level"
+    ]},
+  { id:"accuracy", name:"Technical accuracy & rigour", weight:20, gate:true,
+    desc:"GATE — correct, deep enough for professionals, sourced, honest about nuance.",
+    criteria:[
+      "Claims are correct; no factual errors a domain professional would catch",
+      "Depth suits professionals (worked examples with real numbers, not summaries)",
+      "Frameworks and claims are attributed to named, verifiable sources",
+      "Contested or weakly-evidenced material is flagged honestly (no folk science as fact)"
+    ]},
+  { id:"currency", name:"Currency & regulatory relevance", weight:15, gate:true,
+    desc:"GATE — reflects live standards/tax/reg where applicable; jurisdiction stated; dated & refreshed.",
+    criteria:[
+      "Content reflects current standards/rules/practice (nothing superseded)",
+      "Jurisdiction or applicability scope is stated where it matters",
+      "Content is dated and has a stated review/refresh cycle",
+      "Time-sensitive claims are isolated so refreshes are cheap"
+    ]},
+  { id:"hours", name:"CPD-hour integrity", weight:15, gate:true,
+    desc:"GATE — claimed hours match real time-on-task, evidenced, no padding; verifiable/non-verifiable split stated.",
+    criteria:[
+      "Claimed hours match measured time-on-task (word counts, exercise timings)",
+      "Time claims are evidenced, not asserted (methodology available)",
+      "No padding (repetition, filler video, forced waits) inflating hours",
+      "Verifiable vs non-verifiable CPD split is stated for professional-body claims"
+    ]},
+  { id:"design", name:"Instructional design & engagement", weight:12, gate:false,
+    desc:"Sequencing, varied modalities, active learning, accessibility.",
+    criteria:[
+      "Sequencing builds (each module uses the previous; spaced application)",
+      "Varied modalities (reading, doing, testing, tools — not one long text)",
+      "Active learning throughout (exercises with real-world application, not recall only)",
+      "Accessible: keyboard navigation, readable structure, works across devices"
+    ]},
+  { id:"assessment", name:"Assessment & verification", weight:13, gate:true,
+    desc:"GATE — distributed checks, summative with a pass mark, aligned to outcomes, records-ready certificate.",
+    criteria:[
+      "Distributed checks across the course (not one terminal quiz)",
+      "Summative assessment with a stated pass mark and controlled item exposure",
+      "Assessment items align to outcomes and application, not trivia",
+      "Certificate is records-ready: verifiable, dated, scores or evidence attached"
+    ]},
+  { id:"transfer", name:"Practical application & transfer", weight:10, gate:false,
+    desc:"Case studies, job aids, clear workplace application.",
+    criteria:[
+      "Realistic case studies / worked examples anchor each major concept",
+      "Job aids and templates learners keep using after the course",
+      "Every lesson lands on a workplace action the learner can take this week",
+      "Capstone or project requires integrating the whole course on a real-shaped problem"
+    ]}
+];
+
+const GATE_MIN = 3.0;
+const KEY = "course-audit.v1";
+let state = load();
+
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.scores) return s; } catch(e){}
+  return { scores:{}, na:{}, naNotes:{}, meta:{} };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function domainScore(d) { // 0..4 average of scored criteria, null if incomplete
+  const vals = d.criteria.map((_,i) => state.scores[d.id+":"+i]).filter(v => v !== undefined);
+  if (vals.length < d.criteria.length) return null;
+  return vals.reduce((a,b)=>a+b,0) / vals.length;
+}
+
+function compute() {
+  const active = DOMAINS.filter(d => !state.na[d.id]);
+  const totalW = active.reduce((s,d)=>s+d.weight,0);
+  let acc = 0, complete = true;
+  const gateResults = [];
+  for (const d of active) {
+    const s = domainScore(d);
+    if (s === null) complete = false;
+    else acc += (s/4) * (d.weight/totalW);
+    if (d.gate) gateResults.push({ name:d.name.split(" ")[0], pass: s !== null && s >= GATE_MIN, scored: s !== null });
+  }
+  return { score: complete ? acc*10 : null, complete, gateResults };
+}
+
+function render() {
+  const root = document.getElementById("domains");
+  root.innerHTML = DOMAINS.map(d => {
+    const na = !!state.na[d.id];
+    const s = domainScore(d);
+    const gateState = !d.gate ? "" : na ? `<span class="gate-tag">GATE · N/A</span>`
+      : s === null ? `<span class="gate-tag">GATE · ≥3.0</span>`
+      : s >= GATE_MIN ? `<span class="gate-tag pass">GATE PASS</span>`
+      : `<span class="gate-tag fail">GATE FAIL</span>`;
+    return `<div class="card">
+      <div class="domain-head">
+        <h2>${d.name}</h2>${gateState}
+        <span class="weight">${d.weight}%</span>
+      </div>
+      <div class="desc">${d.desc}</div>
+      ${na ? "" : d.criteria.map((c,i) => {
+        const v = state.scores[d.id+":"+i];
+        return `<div class="crit"><div class="crit-label">${c}</div>
+          <div class="score-btns">${[0,1,2,3,4].map(n =>
+            `<button data-k="${d.id}:${i}" data-v="${n}" class="${v===n?"sel":""}">${n}</button>`).join("")}
+          </div></div>`;
+      }).join("")}
+      <div class="domain-foot">
+        <span>Domain: <span class="dscore">${na ? "N/A" : s === null ? "–" : s.toFixed(2)} / 4</span></span>
+        <span class="na-row"><label><input type="checkbox" data-na="${d.id}" ${na?"checked":""}> N/A — redistribute weight</label></span>
+      </div>
+      ${na ? `<input class="na-note" data-nanote="${d.id}" placeholder="Justification required (e.g. no regulatory content — soft-skill course)" value="${(state.naNotes[d.id]||"").replace(/"/g,"&quot;")}">` : ""}
+    </div>`;
+  }).join("");
+
+  root.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
+    state.scores[b.dataset.k] = +b.dataset.v; save(); render();
+  });
+  root.querySelectorAll("[data-na]").forEach(c => c.onchange = () => {
+    state.na[c.dataset.na] = c.checked; save(); render();
+  });
+  root.querySelectorAll("[data-nanote]").forEach(i => i.oninput = () => {
+    state.naNotes[i.dataset.nanote] = i.value; save();
+  });
+
+  const { score, complete, gateResults } = compute();
+  document.getElementById("score").innerHTML =
+    (score === null ? "–" : score.toFixed(1)) + "<small>/10</small>";
+  document.getElementById("gatesMini").innerHTML = gateResults.map(g =>
+    `${g.pass ? "✅" : g.scored ? "⛔" : "⬜"} ${g.name}`).join(" · ")
+    + (DOMAINS.filter(d=>d.gate && state.na[d.id]).length ? " · (some gates N/A)" : "");
+  const v = document.getElementById("verdict");
+  if (!complete) { v.textContent = "incomplete"; v.className = "verdict pending"; }
+  else if (gateResults.some(g => !g.pass)) { v.textContent = "FAIL — gate not met"; v.className = "verdict fail"; }
+  else { v.textContent = score >= 8 ? "PASS — strong" : score >= 6 ? "PASS — adequate" : "PASS gates, weak score"; v.className = "verdict " + (score >= 6 ? "pass" : "fail"); }
+}
+
+["mCourse","mAuditor","mDate","mJuris","mNotes"].forEach(id => {
+  const el = document.getElementById(id);
+  el.value = state.meta[id] || "";
+  el.oninput = () => { state.meta[id] = el.value; save(); };
+});
+
+document.getElementById("exportBtn").onclick = () => {
+  const { score, complete, gateResults } = compute();
+  const m = state.meta;
+  let md = `# Course audit report\n\n| | |\n|---|---|\n| Course | ${m.mCourse||"—"} |\n| Auditor | ${m.mAuditor||"—"} |\n| Date | ${m.mDate||"—"} |\n| Jurisdiction/context | ${m.mJuris||"—"} |\n| **Weighted score** | **${complete ? score.toFixed(1) : "incomplete"} / 10** |\n| Verdict | ${!complete ? "incomplete" : gateResults.some(g=>!g.pass) ? "FAIL — gate not met" : "PASS"} |\n\n`;
+  md += `Rubric: 0 absent · 1 poor · 2 partial · 3 good · 4 exemplary. Gates require domain ≥ ${GATE_MIN}.\n\n`;
+  for (const d of DOMAINS) {
+    const na = state.na[d.id], s = domainScore(d);
+    md += `## ${d.name} (${d.weight}%${d.gate ? " · GATE" : ""})\n`;
+    if (na) { md += `**N/A** — weight redistributed. Justification: ${state.naNotes[d.id]||"(none given)"}\n\n`; continue; }
+    md += `Domain score: **${s===null?"incomplete":s.toFixed(2)} / 4**`;
+    if (d.gate && s!==null) md += ` — gate ${s>=GATE_MIN?"PASS":"FAIL"}`;
+    md += `\n\n`;
+    d.criteria.forEach((c,i) => {
+      const v = state.scores[d.id+":"+i];
+      md += `- [${v===undefined?" ":v}] ${c}\n`;
+    });
+    md += `\n`;
+  }
+  md += `## Auditor notes\n\n${m.mNotes||"—"}\n`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([md], {type:"text/markdown"}));
+  a.download = `audit-${(m.mCourse||"course").toLowerCase().replace(/[^a-z0-9]+/g,"-")}.md`;
+  a.click(); URL.revokeObjectURL(a.href);
+};
+
+document.getElementById("resetBtn").onclick = () => {
+  if (confirm("Clear all scores and notes?")) { state = { scores:{}, na:{}, naNotes:{}, meta:state.meta }; save(); render(); }
+};
+
+render();
+</script>
+</body>
+</html>

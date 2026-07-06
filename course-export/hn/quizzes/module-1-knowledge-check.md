@@ -45,7 +45,7 @@ Pass mark: 80%. Correct answers are **bold**.
 - Arguing is inherently enjoyable for everyone
 - Beliefs are chosen randomly and defended out of habit
 
-> For most of history exile meant death, so attacks on the tribe's beliefs register as attacks on the self. That's identity tension.
+> Membership registers as critical infrastructure, so attacks on the tribe's beliefs register as attacks on the self. That's identity tension.
 
 **6. A message that mirrors a specific identity ('If you're a freelancer who dreads invoicing…') outperforms a general one because:**
 
@@ -72,5 +72,23 @@ Pass mark: 80%. Correct answers are **bold**.
 - **Acute lower needs narrow the mind — solve a felt, immediate problem first, then raise the ceiling** ✓
 - Repeat the same ideas more loudly and more often
 
-> Urgency eats bandwidth. Sequencing matters: meet the active tension first and earn the right to go deeper later.
+> The robust core of the ladder is that scarcity eats cognitive bandwidth. Meet the active tension first and earn the right to go deeper — the staircase is a heuristic, the narrowed bandwidth is measured.
+
+**9. A case study reads: 'MegaCorp achieved 34% efficiency gains. Great tool! — Manager.' The five-part story audit says it's missing:**
+
+- A bigger efficiency number and more testimonials from executives
+- **Desire, obstacle, stakes and a turn — it's a testimonial (character + ending), not a story** ✓
+- The company's founding date and headquarters location
+- Nothing — case studies should be exactly this short
+
+> Character plus happy ending is a testimonial; it informs but doesn't transport. The drama — and the belief — live in the obstacle, the stakes and the turn.
+
+**10. In brand storytelling, the customer should be cast as:**
+
+- The obstacle the product overcomes
+- A statistic that proves the aggregate claim
+- **The hero — with the brand as the guide who hands over the tools** ✓
+- The audience, watching the brand's achievements
+
+> Brands that star as the hero create spectators; brands that guide create protagonists — and protagonists act. Lead with one person, prove with the aggregate.
 

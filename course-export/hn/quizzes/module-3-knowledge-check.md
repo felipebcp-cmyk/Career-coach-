@@ -74,3 +74,21 @@ Pass mark: 80%. Correct answers are **bold**.
 
 > Manipulation's business model is winning transaction one and forfeiting the rest. Naming real fears is legitimate; inflating them buys conversions with trust you'll repay with interest.
 
+**9. A checkout shows 'only 3 left!' that regenerates for every visitor. Under the six principles, this is:**
+
+- **Scarcity in its manipulative form — the fact underneath wouldn't survive being checked** ✓
+- Acceptable social proof
+- Fine, because scarcity is a documented principle of influence
+- A reciprocity technique
+
+> The principle is never the ethics; the fact underneath is. Real limits with receipts are honest scarcity; regenerating counters are the manipulative form of the same lever.
+
+**10. The recommended way to stack the six principles in one message is:**
+
+- **Two, occasionally three — each carrying a checkable fact** ✓
+- Never more than zero; principles are inherently manipulative
+- One per paragraph, in Cialdini's original order
+- All six at once for maximum effect
+
+> Principles compound, but every element spends the same trust budget — technique density itself reads as manipulation. Two or three, each with a checkable fact, is the working ceiling.
+

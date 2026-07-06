@@ -54,7 +54,7 @@ Pass mark: 80%. Correct answers are **bold**.
 - Exclusion should never be stated openly
 - Both are equally effective boundary-setting
 
-> Exclude on commitment, values and fit. Punching down reads instantly as insecurity and burns future goodwill.
+> Exclude on commitment, values and fit. Punching down reads instantly as insecurity and burns future goodwill — including with the audience you kept.
 
 **7. Painting a transformation works because:**
 
