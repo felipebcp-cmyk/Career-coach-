@@ -197,6 +197,12 @@ COURSE.modules.forEach((mod, mi) => {
   });
 });
 
+if (COURSE.outcomes) {
+  write("outcomes.md", `# Learning outcomes — ${COURSE.title}\n\n${COURSE.outcomes.anchor}\n\n` +
+    COURSE.outcomes.list.map(o =>
+      `- **${o.text}**\n  - Where: ${o.maps} · Competency: ${o.competency}`).join("\n") + "\n");
+}
+
 write("capstone/capstone-scenario-and-tasks.html", capstoneHtml());
 
 const finalPool = COURSE.modules.flatMap(m => m.quiz.questions)

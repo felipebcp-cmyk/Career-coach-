@@ -421,6 +421,24 @@ details.guide p {
   .certificate { box-shadow: none; }
 }
 
+/* ---------- outcomes, listen mode, accessibility ---------- */
+
+.outcomes { list-style: none; margin-top: 10px; }
+.outcomes li { padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 14.5px; }
+.outcomes li:last-child { border-bottom: none; }
+.outcome-meta { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+.lesson-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.btn.listen { white-space: nowrap; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--brand); color: #fff; padding: 10px 18px;
+  border-radius: 0 0 8px 0; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
 /* ---------- small screens ---------- */
 
 .tabs { scrollbar-width: none; -webkit-overflow-scrolling: touch; }

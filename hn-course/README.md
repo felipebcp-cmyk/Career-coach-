@@ -37,6 +37,19 @@ reshuffled retakes), a 20-question final sampled fresh from all modules and
 the scenario (70% pass, retake as needed), everything open-book and
 self-assessed, printable certificate on completion.
 
+## Outcomes, accessibility & modalities
+
+- **Learning outcomes** are formally stated on the dashboard and in the export
+  pack (`outcomes.md`): each is measurable, mapped to specific lessons,
+  workshops and assessments, and tagged with competency-framework labels.
+- **Accessibility:** skip-to-content link, ARIA dialog/status/progressbar
+  semantics, `aria-current` navigation, `aria-pressed` quiz options, Escape
+  closes modals, keyboard-activatable rows/cards, and `prefers-reduced-motion`
+  support.
+- **Listen mode:** every lesson has a ▶ Listen button (browser speech engine,
+  no downloads) with pause/resume — a second modality for commutes and for
+  learners who prefer audio. Playback stops automatically on navigation.
+
 ## Version, review & CPD statement
 
 - **Content version:** 2.0 (executive edition) · **Last reviewed:** July 2026 ·

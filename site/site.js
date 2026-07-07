@@ -40,17 +40,26 @@
   const modules = document.querySelectorAll("[data-module]");
   modules.forEach((m, i) => {
     if (i === 0) m.classList.add("open");
-    m.querySelector(".module-head").addEventListener("click", () => {
+    const head = m.querySelector(".module-head");
+    const sync = () => modules.forEach(x =>
+      x.querySelector(".module-head").setAttribute("aria-expanded", x.classList.contains("open")));
+    head.addEventListener("click", () => {
       const wasOpen = m.classList.contains("open");
       modules.forEach(x => x.classList.remove("open"));
       if (!wasOpen) m.classList.add("open");
+      sync();
     });
+    sync();
   });
 
   // FAQ accordions
   document.querySelectorAll("[data-faq]").forEach(item => {
-    item.querySelector(".faq-q").addEventListener("click", () =>
-      item.classList.toggle("open"));
+    const q = item.querySelector(".faq-q");
+    q.setAttribute("aria-expanded", "false");
+    q.addEventListener("click", () => {
+      item.classList.toggle("open");
+      q.setAttribute("aria-expanded", item.classList.contains("open"));
+    });
   });
 
   // footer year

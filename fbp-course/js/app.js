@@ -172,6 +172,12 @@
     $("#authSubmit").addEventListener("click", submitAuth);
     ["#authEmail", "#authPass", "#authName", "#authCode"].forEach(sel =>
       $(sel).addEventListener("keydown", e => { if (e.key === "Enter") submitAuth(); }));
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && !$("#authModal").classList.contains("hidden")) {
+        $("#authModal").classList.add("hidden");
+        if (!state.startedAt && !session) $("#onboarding").classList.remove("hidden");
+      }
+    });
   }
 
   function authFail(r, fallback) {
@@ -403,8 +409,12 @@
 
   function render() {
     lastHash = location.hash || "#dashboard";
-    document.querySelectorAll(".tab").forEach(b =>
-      b.classList.toggle("active", b.dataset.view === view));
+    document.querySelectorAll(".tab").forEach(b => {
+      const active = b.dataset.view === view;
+      b.classList.toggle("active", active);
+      if (active) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    if ("speechSynthesis" in window) speechSynthesis.cancel(); // stop listen mode on navigation
     if (view === "dashboard") renderDashboard();
     else if (view === "capstone") renderCapstone();
     else if (view === "certificate") renderCertificate();
@@ -462,9 +472,22 @@
         <strong>foundations → analysis to influence → the advisor's seat</strong>,
         then a capstone scenario and final assessment. Finish it all and you earn
         your certificate of completion.</p>
-        <div class="meter big"><div class="meter-fill" style="width:${pct}%"></div></div>
+        <div class="meter big" role="progressbar" aria-label="Course progress" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><div class="meter-fill" style="width:${pct}%"></div></div>
         <div class="muted small">${pct}% of the course complete${state.completedAt ? " · certified " + new Date(state.completedAt).toLocaleDateString() : ""}</div>
       </section>
+
+      ${COURSE.outcomes ? `
+      <section class="card">
+        <h3>What you'll be able to do <span class="muted small">(mapped to lessons and competency frameworks)</span></h3>
+        <p class="muted small">${esc(COURSE.outcomes.anchor)}</p>
+        <ul class="outcomes">
+          ${COURSE.outcomes.list.map(o => `
+          <li>
+            <div>${esc(o.text)}</div>
+            <div class="outcome-meta"><span class="chip">${esc(o.maps)}</span> <span class="chip">${esc(o.competency)}</span></div>
+          </li>`).join("")}
+        </ul>
+      </section>` : ""}
 
       <section class="grid">
         ${moduleCards}
@@ -627,7 +650,10 @@
     main.innerHTML = `
       <button class="linklike back" id="backBtn">← Back to module</button>
       <section class="card lesson">
-        <div class="muted small">Lesson ${li + 1} of ${mod.lessons.length} · ~${l.minutes} min</div>
+        <div class="lesson-meta-row">
+          <div class="muted small">Lesson ${li + 1} of ${mod.lessons.length} · ~${l.minutes} min</div>
+          ${("speechSynthesis" in window) ? `<button class="btn small listen" id="listenBtn" aria-label="Listen to this lesson">▶ Listen</button>` : ""}
+        </div>
         <h1>${esc(l.title)}</h1>
         ${sections}
         ${l.example ? `
@@ -661,6 +687,27 @@
         </div>
       </section>`;
 
+    const lb = $("#listenBtn");
+    if (lb) lb.addEventListener("click", () => {
+      if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        speechSynthesis.pause(); lb.textContent = "▶ Resume"; return;
+      }
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume(); lb.textContent = "⏸ Pause"; return;
+      }
+      const parts = [l.title];
+      l.sections.forEach(s => { parts.push(s.h); if (s.p) parts.push(s.p); if (s.list) parts.push(s.list.join(". ")); });
+      if (l.example) { parts.push("Worked example: " + l.example.title); parts.push(l.example.body.join(" ")); }
+      if (l.mistakes) parts.push("Where this goes wrong: " + l.mistakes.join(" Next: "));
+      parts.push("Key takeaways: " + l.takeaways.join(" "));
+      const u = new SpeechSynthesisUtterance(parts.join(". "));
+      u.rate = 1.05;
+      u.onend = () => { lb.textContent = "▶ Listen"; };
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+      lb.textContent = "⏸ Pause";
+    });
+
     $("#backBtn").addEventListener("click", () => go(mod.id));
     $("#doneBtn").addEventListener("click", () => {
       state.lessonsDone[l.id] = true;
@@ -685,7 +732,7 @@
           if (oi === q.answer) cls += " correct";
           else if (chosen) cls += " wrong";
         } else if (chosen) cls += " chosen";
-        return `<button class="${cls}" data-q="${qi}" data-o="${oi}" ${aq.submitted ? "disabled" : ""}>${esc(o)}</button>`;
+        return `<button class="${cls}" data-q="${qi}" data-o="${oi}" aria-pressed="${chosen}" ${aq.submitted ? "disabled" : ""}>${esc(o)}</button>`;
       }).join("");
       const explain = aq.submitted
         ? `<div class="explain ${aq.answers[qi] === q.answer ? "good" : "bad"}">
