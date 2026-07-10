@@ -38,6 +38,11 @@ in your browser's `localStorage`.
 
 ## Run it
 
+**Live:** https://felipebcp-cmyk.github.io/Career-coach-/ — the hub page, with Nada
+Flights at [`/flights/`](https://felipebcp-cmyk.github.io/Career-coach-/flights/),
+NadaMart at `/shop/` and Rekindle at `/rekindle/`. Deployment is assembled from the
+three branches by `.github/workflows/deploy-pages.yml` on every push to this branch.
+
 ```bash
 # Option 1: just open the file
 open index.html

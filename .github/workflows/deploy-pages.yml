@@ -1,13 +1,15 @@
 name: Deploy to GitHub Pages
 
+# Deploys the whole Nada family as one Pages site:
+#   /          → hub landing page (from this branch's hub/)
+#   /flights/  → Nada Flights (this branch)
+#   /shop/     → NadaMart (claude/dopamine-websites-6leago)
+#   /rekindle/ → Rekindle (claude/burnout-recovery-coach-app-tglqib)
+# All three apps use relative asset paths, so they work from subdirectories.
 on:
   push:
     branches:
-      - main
-      # Pre-merge preview only. REMOVE this trigger once PR #1 merges —
-      # both branches share the "pages" concurrency group, so a stale push
-      # here would overwrite the production deployment from main.
-      - claude/burnout-recovery-coach-app-tglqib
+      - claude/dopamine-travel
   workflow_dispatch:
 
 permissions:
@@ -26,8 +28,27 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Checkout Nada Flights (this branch)
         uses: actions/checkout@v4
+        with:
+          path: src-flights
+      - name: Checkout NadaMart
+        uses: actions/checkout@v4
+        with:
+          ref: claude/dopamine-websites-6leago
+          path: src-shop
+      - name: Checkout Rekindle
+        uses: actions/checkout@v4
+        with:
+          ref: claude/burnout-recovery-coach-app-tglqib
+          path: src-rekindle
+      - name: Assemble site
+        run: |
+          mkdir -p site/flights site/shop site/rekindle
+          cp -r src-flights/index.html src-flights/styles.css src-flights/js site/flights/
+          cp -r src-shop/index.html src-shop/styles.css src-shop/js site/shop/
+          cp -r src-rekindle/index.html src-rekindle/styles.css src-rekindle/js site/rekindle/
+          cp src-flights/hub/index.html site/index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
@@ -35,7 +56,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

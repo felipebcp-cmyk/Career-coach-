@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nada — the hit without the cost</title>
+<meta name="description" content="Dopamine sites: fake shopping and fake flights that give you the full ritual of spending with none of the spending. Plus Rekindle, a burnout recovery coach.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(1000px 460px at 85% -10%, rgba(255, 79, 163, .15), transparent 60%),
+      radial-gradient(800px 400px at 0% 15%, rgba(45, 212, 191, .15), transparent 60%),
+      #fff8ec;
+    color: #241a33;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem 2rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); font-weight: 900; text-align: center; letter-spacing: -.02em; }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, #ff4fa3, #ff8a3d, #7b2ff7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sub { color: #5d5470; font-weight: 600; text-align: center; max-width: 560px; margin: .8rem auto 2.2rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 280px)); gap: 1.1rem; justify-content: center; width: 100%; max-width: 940px; }
+  .card {
+    background: #fff;
+    border: 2px solid #241a33;
+    border-radius: 20px;
+    box-shadow: 0 6px 0 rgba(36, 26, 51, .12);
+    padding: 1.3rem 1.2rem 1.2rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover { transform: translateY(-4px) rotate(-.4deg); box-shadow: 0 10px 24px rgba(123, 47, 247, .2); }
+  .card .emoji { font-size: 2.6rem; }
+  .card h2 { font-size: 1.15rem; font-weight: 900; }
+  .card p { font-size: .88rem; color: #5d5470; font-weight: 600; flex: 1; }
+  .card .go {
+    align-self: flex-start;
+    background: linear-gradient(90deg, #ff4fa3, #7b2ff7);
+    color: #fff;
+    border-radius: 12px;
+    border: 2px solid #241a33;
+    padding: .4rem .9rem;
+    font-weight: 800;
+    font-size: .9rem;
+  }
+  .card.calm .go { background: linear-gradient(90deg, #ff8a3d, #f9ab00); }
+  .foot { margin-top: 2.4rem; font-size: .8rem; color: #5d5470; font-weight: 600; text-align: center; max-width: 640px; }
+</style>
+</head>
+<body>
+  <h1>The hit, <em>without the cost</em>.</h1>
+  <p class="sub">Two Korean-style <strong>dopamine sites</strong> — the full ritual of spending with none of the
+  spending — and one quiet app for what the spending was probably about anyway.</p>
+
+  <div class="cards">
+    <a class="card" href="shop/">
+      <span class="emoji">🛍️</span>
+      <h2>NadaMart</h2>
+      <p>Everything you want. Nothing you get. Browse, cart, checkout, courier tracking — $0.00, always.</p>
+      <span class="go">Shop nothing →</span>
+    </a>
+    <a class="card" href="flights/">
+      <span class="emoji">✈️</span>
+      <h2>Nada Flights</h2>
+      <p>Search flights, book a fare, get a boarding pass, track a plane cruising at 0&nbsp;ft. Go exactly nowhere.</p>
+      <span class="go">Fly nowhere →</span>
+    </a>
+    <a class="card calm" href="rekindle/">
+      <span class="emoji">🔥</span>
+      <h2>Rekindle</h2>
+      <p>A private, local-first burnout recovery &amp; career coach. The sincere sibling of the family.</p>
+      <span class="go">Recover →</span>
+    </a>
+  </div>
+
+  <p class="foot">The Nada sites are parodies / self-help toys: no stores, no airlines, no payments, no deliveries —
+  a permanent banner on each says so. Everything runs in your browser; “savings” live in your own
+  <code>localStorage</code> and never leave your device.</p>
+</body>
+</html>
