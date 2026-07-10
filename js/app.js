@@ -1,63 +1,45 @@
-/* NadaMart — a Korean-style "dopamine site": the full shopping ritual, zero purchases.
-   Vanilla JS. Lifetime "savings" persist in localStorage; carts are per-visit. */
+/* Nada Flights — a Google-Flights-style "dopamine site": search, book and track
+   flights that never exist. Vanilla JS; lifetime savings persist in localStorage. */
 
-const STORE_KEY = "nadamart.v1";
+const STORE_KEY = "nadaflights.v1";
 
-/* ---------------- catalog ---------------- */
+/* ---------------- data ---------------- */
 
-const PRODUCTS = [
-  { id: "buds", name: "CloudPods Pro wireless earbuds", emoji: "🎧", cat: "Tech", price: 129, was: 219, rating: 4.8, reviews: 2841,
-    blurb: "Noise cancelling so good you can't even hear your card not being charged.",
-    quotes: [["mina_k", "Ordered at 2am instead of doom-scrolling shopping apps. Woke up richer."], ["dopamine_dan", "The bass I imagined was incredible."]] },
-  { id: "sneak", name: "Retro Runner '86 sneakers", emoji: "👟", cat: "Fashion", price: 189, was: 260, rating: 4.7, reviews: 1932,
-    blurb: "Limited drop. Extremely hyped. Ships to absolutely no one.",
-    quotes: [["sole.less", "True to size (I assume)."], ["jae", "Flexed the order confirmation in the group chat. Nobody checked."]] },
-  { id: "keeb", name: "Thocky mechanical keyboard", emoji: "⌨️", cat: "Tech", price: 149, was: 199, rating: 4.9, reviews: 3310,
-    blurb: "Lubed switches, gasket mount, zero desk space consumed.",
-    quotes: [["clacker", "The thock is theoretical but I feel it."], ["wpm_god", "My 6th keyboard this month and my wallet is fine."]] },
-  { id: "robovac", name: "RoboVac S9 self-empty base", emoji: "🤖", cat: "Home", price: 399, was: 649, rating: 4.6, reviews: 5104,
-    blurb: "Maps your home, empties itself, and never actually shows up to judge your floors.",
-    quotes: [["cleanfreak", "My imaginary floors are spotless."], ["catmom", "The cat would have hated it. Crisis averted."]] },
-  { id: "fryer", name: "CrispAir XL air fryer", emoji: "🍟", cat: "Home", price: 89, was: 139, rating: 4.5, reviews: 8722,
-    blurb: "The appliance everyone owns and you almost did. So close.",
-    quotes: [["snacc", "0 calories consumed. Best purchase ever."], ["chef_no", "Doesn't take up counter space. Genius design."]] },
-  { id: "serum", name: "Glass Skin 10-step serum set", emoji: "🧴", cat: "Beauty", price: 75, was: 120, rating: 4.7, reviews: 4419,
-    blurb: "K-beauty routine, snail mucin included. Your skin barrier remains undisturbed.",
-    quotes: [["glow_up", "My skin is glowing from the savings."], ["seoul_sis", "Step 11 is closing the app. Nailed it."]] },
-  { id: "cam", name: "InstaSnap retro camera", emoji: "📸", cat: "Tech", price: 119, was: 159, rating: 4.4, reviews: 1276,
-    blurb: "Capture memories of all the money you didn't spend.",
-    quotes: [["film_grl", "The photos I didn't take are stunning."], ["retro_rob", "Aesthetic AF in my imagination."]] },
-  { id: "desk", name: "AltiRise standing desk", emoji: "🪑", cat: "Home", price: 499, was: 799, rating: 4.6, reviews: 2011,
-    blurb: "Dual motor, memory presets, and a 100% chance you'd still sit anyway.",
-    quotes: [["backpain", "I stood up while ordering. That counts."], ["wfh_wes", "Assembly took 0 minutes. Incredible."]] },
-  { id: "espresso", name: "Barista9 espresso machine", emoji: "☕", cat: "Home", price: 349, was: 499, rating: 4.8, reviews: 3689,
-    blurb: "Café-grade crema. Your counter, your bank account: untouched.",
-    quotes: [["bean_there", "Saved $349 AND skipped the caffeine jitters."], ["latte.art", "The latte art I visualized was a swan."]] },
-  { id: "tote", name: "Le Bourgeois designer tote", emoji: "👜", cat: "Fashion", price: 259, was: 340, rating: 4.5, reviews: 987,
-    blurb: "Quiet luxury. So quiet it never arrives.",
-    quotes: [["it_girl", "Goes with everything I also didn't buy."], ["minimal_min", "Owning zero of these is very minimalist of me."]] },
-  { id: "watch", name: "Pulse X smartwatch", emoji: "⌚", cat: "Tech", price: 299, was: 399, rating: 4.6, reviews: 6230,
-    blurb: "Tracks your heart rate spiking at checkout. Then nothing else, ever.",
-    quotes: [["stepcount", "It would have judged my step count anyway."], ["gadget_guy", "Battery life: infinite (still in the imaginary box)."]] },
-  { id: "led", name: "GlowStrip LED room lights", emoji: "💡", cat: "Home", price: 29, was: 49, rating: 4.3, reviews: 11245,
-    blurb: "16 million colors for the room makeover you're not doing.",
-    quotes: [["vibes_only", "My room is the same but my soul is RGB."], ["teen_dream", "TikTok made me not buy it."]] },
-  { id: "chicken", name: "Double-crunch fried chicken set", emoji: "🍗", cat: "Food", price: 24, was: 32, rating: 4.9, reviews: 15872,
-    blurb: "Korean fried chicken + fries + cola. The original dopamine order that never comes.",
-    quotes: [["chimaek", "Ordered at midnight. Slept like a baby. No grease."], ["yum_yum", "The crunch was spiritual."]] },
-  { id: "boba", name: "Brown sugar boba, 4-pack", emoji: "🧋", cat: "Food", price: 18, was: 24, rating: 4.7, reviews: 9034,
-    blurb: "Chewy pearls, zero sugar crash. The straw stays sealed forever.",
-    quotes: [["pearl_lvr", "50% sweetness, 100% savings."], ["tea_rex", "My dentist is so proud of me."]] },
-  { id: "console", name: "MegaBox 5 game console", emoji: "🎮", cat: "Tech", price: 499, was: 549, rating: 4.8, reviews: 7741,
-    blurb: "4K, 120fps, and infinite free time preserved.",
-    quotes: [["no_scope", "Backlog remains at 0 games. Flawless."], ["p1ayer_one", "Touched grass instead. 10/10."]] },
-  { id: "plush", name: "Cloud sofa cushion set", emoji: "🛋️", cat: "Home", price: 65, was: 95, rating: 4.4, reviews: 2458,
-    blurb: "Marshmallow-soft cushions for the couch rot session you deserve.",
-    quotes: [["cozy_core", "My couch is unchanged and so is my rent money."], ["nap_queen", "Dreamed about them. Very soft."]] },
+const AIRPORTS = [
+  { code: "GRU", city: "São Paulo", country: "🇧🇷", lat: -23.43, lon: -46.47 },
+  { code: "GIG", city: "Rio de Janeiro", country: "🇧🇷", lat: -22.81, lon: -43.25 },
+  { code: "ICN", city: "Seoul", country: "🇰🇷", lat: 37.46, lon: 126.44 },
+  { code: "NRT", city: "Tokyo", country: "🇯🇵", lat: 35.77, lon: 140.39 },
+  { code: "JFK", city: "New York", country: "🇺🇸", lat: 40.64, lon: -73.78 },
+  { code: "LAX", city: "Los Angeles", country: "🇺🇸", lat: 33.94, lon: -118.41 },
+  { code: "SFO", city: "San Francisco", country: "🇺🇸", lat: 37.62, lon: -122.38 },
+  { code: "MIA", city: "Miami", country: "🇺🇸", lat: 25.79, lon: -80.29 },
+  { code: "LHR", city: "London", country: "🇬🇧", lat: 51.47, lon: -0.45 },
+  { code: "CDG", city: "Paris", country: "🇫🇷", lat: 49.01, lon: 2.55 },
+  { code: "LIS", city: "Lisbon", country: "🇵🇹", lat: 38.77, lon: -9.13 },
+  { code: "BCN", city: "Barcelona", country: "🇪🇸", lat: 41.30, lon: 2.08 },
+  { code: "FCO", city: "Rome", country: "🇮🇹", lat: 41.80, lon: 12.24 },
+  { code: "AMS", city: "Amsterdam", country: "🇳🇱", lat: 52.31, lon: 4.76 },
+  { code: "DXB", city: "Dubai", country: "🇦🇪", lat: 25.25, lon: 55.36 },
+  { code: "SIN", city: "Singapore", country: "🇸🇬", lat: 1.36, lon: 103.99 },
+  { code: "BKK", city: "Bangkok", country: "🇹🇭", lat: 13.69, lon: 100.75 },
+  { code: "SYD", city: "Sydney", country: "🇦🇺", lat: -33.95, lon: 151.18 },
+  { code: "MEX", city: "Mexico City", country: "🇲🇽", lat: 19.44, lon: -99.07 },
+  { code: "YYZ", city: "Toronto", country: "🇨🇦", lat: 43.68, lon: -79.63 },
 ];
 
-const CATS = ["All", ...new Set(PRODUCTS.map(p => p.cat))];
-const FREE_SHIP_AT = 50; // "free non-delivery" threshold, purely for the progress-bar dopamine
+const AIRLINES = [
+  ["Imaginair", "🪽", "IM"],
+  ["Vaporjet", "💨", "VJ"],
+  ["Daydream Airways", "🌙", "DD"],
+  ["Placebo Air", "💊", "PL"],
+  ["Ghost Air", "👻", "GH"],
+  ["Null Airlines", "⭕", "NL"],
+  ["Mirage Pacific", "🏝️", "MP"],
+  ["Nada Air", "✨", "NA"],
+];
+
+const CABINS = { eco: ["Economy", 1], prem: ["Premium economy", 1.7], biz: ["Business", 3], first: ["First", 4.6] };
 
 /* ---------------- persistent stats ---------------- */
 
@@ -66,29 +48,50 @@ function loadStats() {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if (s && typeof s.saved === "number") return s;
   } catch (e) { /* corrupted → start fresh */ }
-  return { saved: 0, orders: 0, items: 0 };
+  return { saved: 0, trips: 0, miles: 0 };
 }
 const stats = loadStats();
 function saveStats() { localStorage.setItem(STORE_KEY, JSON.stringify(stats)); }
 
 /* ---------------- state ---------------- */
 
-const cart = new Map(); // id → qty
-let activeCat = "All";
+const trip = {
+  type: "round", pax: 1, cabin: "eco",
+  from: null, to: null, depDate: null, retDate: null,
+  phase: "out",            // which leg is being chosen
+  outbound: null, inbound: null,
+  flights: [], sort: "best",
+};
 let trackTimers = [];
-let lastOrder = null;
+let booking = null;
 
 /* ---------------- helpers ---------------- */
 
 const $ = id => document.getElementById(id);
-const money = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0 });
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const money2 = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
-const TILE_HUES = ["#ffe3f1", "#e8ddff", "#ffedd6", "#fff6c9", "#dcfce7", "#d5f6f2"];
-const tileBg = i => TILE_HUES[i % TILE_HUES.length];
+function km(a, b) {
+  const R = 6371, d = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * d, dLon = (b.lon - a.lon) * d;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * d) * Math.cos(b.lat * d) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
 
-function stars(r) {
-  return "★".repeat(Math.round(r)) + "☆".repeat(5 - Math.round(r));
+function fmtDur(mins) {
+  return `${Math.floor(mins / 60)} h ${String(Math.round(mins % 60)).padStart(2, "0")} m`;
+}
+function fmtTime(mins) {
+  const h24 = Math.floor(mins / 60) % 24, m = Math.round(mins % 60);
+  const ap = h24 >= 12 ? "PM" : "AM";
+  const h = h24 % 12 || 12;
+  return `${h}:${String(m).padStart(2, "0")} ${ap}`;
+}
+function fmtDate(iso) {
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
 let toastTimer;
@@ -97,12 +100,12 @@ function toast(msg) {
   t.textContent = msg;
   t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 2200);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
 }
 
 function confetti() {
   const layer = $("confettiLayer");
-  const colors = ["#ff4fa3", "#7b2ff7", "#ff8a3d", "#ffd23f", "#22c55e", "#2dd4bf"];
+  const colors = ["#4285f4", "#ea4335", "#fbbc04", "#34a853", "#1a73e8", "#188038"];
   for (let i = 0; i < 90; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
@@ -110,164 +113,183 @@ function confetti() {
     c.style.background = colors[i % colors.length];
     c.style.animationDuration = 1.6 + Math.random() * 1.8 + "s";
     c.style.animationDelay = Math.random() * .4 + "s";
-    c.style.transform = `rotate(${Math.random() * 360}deg)`;
     layer.appendChild(c);
     setTimeout(() => c.remove(), 4200);
   }
+}
+
+function parseAirport(v) {
+  v = v.trim().toLowerCase();
+  if (!v) return null;
+  return AIRPORTS.find(a =>
+    v.includes(a.code.toLowerCase()) || a.city.toLowerCase().includes(v) || v.includes(a.city.toLowerCase())
+  ) || null;
+}
+
+/* ---------------- flight generation ---------------- */
+
+function makeFlights(fromA, toA) {
+  const dist = km(fromA, toA);
+  const flights = [];
+  for (let i = 0; i < 9; i++) {
+    const [airline, logo, iata] = pick(AIRLINES);
+    const stops = dist < 2500 ? (Math.random() < .7 ? 0 : 1) : Math.random() < .4 ? 0 : Math.random() < .8 ? 1 : 2;
+    const flightMins = dist / 840 * 60 + 40 + stops * rnd(70, 160);
+    const dep = Math.round(rnd(5 * 60, 22.5 * 60) / 5) * 5;
+    const price = (dist * rnd(.07, .12) + 60 + stops * -25 + rnd(0, 90)) * CABINS[trip.cabin][1];
+    flights.push({
+      id: i,
+      airline, logo,
+      no: iata + Math.floor(rnd(100, 999)),
+      dep, arr: dep + flightMins, dur: flightMins,
+      stops, price: Math.max(49, Math.round(price)),
+      co2avg: Math.round(dist * .09 * CABINS[trip.cabin][1]),
+      from: fromA, to: toA, dist,
+    });
+  }
+  return flights;
+}
+
+function sortFlights(list) {
+  const s = trip.sort;
+  return [...list].sort((a, b) =>
+    s === "cheap" ? a.price - b.price :
+    s === "fast" ? a.dur - b.dur :
+    (a.price + a.dur * 1.4 + a.stops * 150) - (b.price + b.dur * 1.4 + b.stops * 150));
 }
 
 /* ---------------- rendering ---------------- */
 
 function renderStats() {
   $("savingsTotal").textContent = money(stats.saved);
-  $("statOrders").textContent = stats.orders;
-  $("statItems").textContent = stats.items;
+  $("statTrips").textContent = stats.trips;
+  $("statMiles").textContent = stats.miles.toLocaleString("en-US");
   $("statSaved").textContent = money(stats.saved);
 }
 
-function renderFilters() {
-  $("filters").innerHTML = CATS.map(c =>
-    `<button class="filter-chip ${c === activeCat ? "active" : ""}" data-cat="${c}" role="tab" aria-selected="${c === activeCat}">${c}</button>`
-  ).join("");
+function renderInsight() {
+  const list = trip.flights;
+  const lo = Math.min(...list.map(f => f.price)), hi = Math.max(...list.map(f => f.price));
+  $("insightSub").textContent =
+    `Similar trips usually cost ${money(lo)}–${money(hi)}. You, of course, will pay $0.`;
+  $("insightChart").innerHTML =
+    Array.from({ length: 11 }, () => `<div class="ibar" style="height:${Math.round(rnd(30, 100))}%"></div>`).join("") +
+    `<div class="ibar you" style="height:4%" title="your price"></div>`;
 }
 
-function renderGrid() {
-  const list = PRODUCTS.filter(p => activeCat === "All" || p.cat === activeCat);
-  $("productGrid").innerHTML = list.map(p => {
-    const i = PRODUCTS.indexOf(p);
-    const off = Math.round((1 - p.price / p.was) * 100);
-    return `<article class="card">
-      <div class="card-art" style="background:${tileBg(i)}" data-quick="${p.id}" title="Quick view">
-        <span class="discount">-${off}%</span>${p.emoji}
-      </div>
-      <div class="card-body">
-        <div class="card-name">${p.name}</div>
-        <div class="card-rating">${stars(p.rating)} ${p.rating} · ${p.reviews.toLocaleString()} reviews</div>
-        <div class="card-price-row">
-          <span class="price">${money(p.price)}</span>
-          <span class="price-was">${money(p.was)}</span>
+function renderFlights() {
+  const isOut = trip.phase === "out";
+  $("resultsTitle").textContent = isOut ? "Best departing flights" : "Now pick your returning flight";
+  $("flightList").innerHTML = sortFlights(trip.flights).map(f => {
+    const plus1 = f.arr >= 24 * 60 ? " +1" : "";
+    return `<div class="flight-row">
+      <div class="fl-main">
+        <span class="fl-logo">${f.logo}</span>
+        <div>
+          <div class="fl-times">${fmtTime(f.dep)} – ${fmtTime(f.arr)}${plus1}</div>
+          <div class="fl-airline">${f.airline} · ${f.no}</div>
         </div>
-        <button class="add-btn" data-add="${p.id}">Add to cart ✨</button>
       </div>
-    </article>`;
+      <div class="fl-dur-wrap">
+        <div class="fl-dur">${fmtDur(f.dur)}</div>
+        <div class="fl-codes">${f.from.code}–${f.to.code}</div>
+      </div>
+      <div class="fl-stops">${f.stops === 0 ? "Nonstop" : f.stops + " stop" + (f.stops > 1 ? "s" : "")}
+        <small>${f.stops ? "somewhere imaginary" : "to nowhere, directly"}</small></div>
+      <div class="fl-co2">0 kg CO₂<small>avg ${f.co2avg} kg — you're not flying</small></div>
+      <div class="fl-price">
+        <div class="p"><span class="strike">${money(f.price)}</span>$0</div>
+        <small>${isOut && trip.type === "round" ? "per leg, per person" : "per person"}</small>
+        <button class="select-btn" data-select="${f.id}">Select</button>
+      </div>
+    </div>`;
   }).join("");
 }
 
-function renderCart() {
-  const items = [...cart.entries()].map(([id, qty]) => ({ p: PRODUCTS.find(p => p.id === id), qty }));
-  const count = items.reduce((s, it) => s + it.qty, 0);
-  const total = items.reduce((s, it) => s + it.p.price * it.qty, 0);
+function search() {
+  const from = parseAirport($("fromInput").value);
+  const to = parseAirport($("toInput").value);
+  if (!from || !to) return toast("Pick airports from the list — they're the only real thing here ✈️");
+  if (from.code === to.code) return toast("Origin and destination match. Technically the trip is already complete.");
+  const dep = $("depDate").value, ret = $("retDate").value;
+  if (!dep) return toast("Pick a departure date you'll feel nothing on.");
+  if (trip.type === "round" && (!ret || ret < dep)) return toast("Return date must be after departure. Even fake time is linear.");
 
-  $("cartCount").hidden = count === 0;
-  $("cartCount").textContent = count;
+  Object.assign(trip, { from, to, depDate: dep, retDate: ret, phase: "out", outbound: null, inbound: null });
+  trip.flights = makeFlights(from, to);
+  renderInsight();
+  renderFlights();
+  $("resultsArea").hidden = false;
+  $("resultsArea").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
-  if (!items.length) {
-    $("cartItems").innerHTML = `<div class="cart-empty"><span class="big-emoji">🛒</span>
-      Your cart is empty.<br>Fill it with things you'll never receive.</div>`;
+function selectFlight(id) {
+  const f = trip.flights.find(x => x.id === Number(id));
+  if (trip.phase === "out") {
+    trip.outbound = f;
+    if (trip.type === "round") {
+      trip.phase = "ret";
+      trip.flights = makeFlights(trip.to, trip.from);
+      renderFlights();
+      toast("Departure locked in. Now the flight home — from the place you'll never be.");
+      $("resultsArea").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
   } else {
-    $("cartItems").innerHTML = items.map(({ p, qty }) => {
-      const i = PRODUCTS.indexOf(p);
-      return `<div class="cart-item">
-        <div class="cart-item-art" style="background:${tileBg(i)}">${p.emoji}</div>
-        <div>
-          <div class="cart-item-name">${p.name}</div>
-          <div class="cart-item-price">${money(p.price)} each</div>
-        </div>
-        <div class="qty-row">
-          <button class="qty-btn" data-dec="${p.id}" aria-label="Remove one">−</button>
-          <span class="qty-num">${qty}</span>
-          <button class="qty-btn" data-inc="${p.id}" aria-label="Add one">+</button>
-        </div>
-      </div>`;
-    }).join("");
+    trip.inbound = f;
   }
-
-  const pct = Math.min(100, Math.round(total / FREE_SHIP_AT * 100));
-  $("shipFill").style.width = pct + "%";
-  $("shipNote").textContent = total >= FREE_SHIP_AT
-    ? "🎉 You unlocked FREE non-delivery!"
-    : `Add ${money(FREE_SHIP_AT - total)} more for FREE non-delivery`;
-  $("cartTotal").textContent = money(total);
-  $("checkoutBtn").disabled = !items.length;
-  $("checkoutBtn").style.opacity = items.length ? 1 : .5;
+  openBooking();
 }
 
-function renderCheckoutSummary() {
-  const items = [...cart.entries()].map(([id, qty]) => ({ p: PRODUCTS.find(p => p.id === id), qty }));
-  const total = items.reduce((s, it) => s + it.p.price * it.qty, 0);
-  $("checkoutSummary").innerHTML =
-    items.map(({ p, qty }) => `<div class="sum-row"><span>${p.emoji} ${p.name} × ${qty}</span><span>${money(p.price * qty)}</span></div>`).join("") +
-    `<div class="sum-row"><span>Subtotal</span><span class="strike">${money(total)}</span></div>
-     <div class="sum-row"><span>Dopamine discount (−100%)</span><span>−${money(total)}</span></div>
-     <div class="sum-row"><span>Non-delivery fee</span><span class="free">FREE</span></div>
-     <div class="sum-row total"><span>You pay</span><span class="free">$0.00</span></div>`;
-}
+/* ---------------- booking ---------------- */
 
-/* ---------------- quick view ---------------- */
-
-function openQuick(id) {
-  const p = PRODUCTS.find(x => x.id === id);
-  const i = PRODUCTS.indexOf(p);
-  $("quickBody").innerHTML = `
-    <div class="quick-art" style="background:${tileBg(i)}">${p.emoji}</div>
-    <h3 id="quickName">${p.name}</h3>
-    <div class="card-rating">${stars(p.rating)} ${p.rating} · ${p.reviews.toLocaleString()} verified non-buyers</div>
-    <p class="quick-blurb">${p.blurb}</p>
-    <div class="quick-reviews">
-      ${p.quotes.map(([who, text]) => `<div class="review"><b>@${esc(who)} ★★★★★</b>${esc(text)}</div>`).join("")}
+function legCard(kind, f, date) {
+  return `<div class="leg-card">
+    <span class="fl-logo">${f.logo}</span>
+    <div>
+      <div class="leg-kind">${kind} · ${fmtDate(date)}</div>
+      <div class="leg-route">${f.from.city} (${f.from.code}) → ${f.to.city} (${f.to.code})</div>
+      <div class="leg-meta">${f.airline} ${f.no} · ${fmtTime(f.dep)}–${fmtTime(f.arr)} · ${fmtDur(f.dur)} · ${f.stops ? f.stops + " stop(s)" : "Nonstop"}</div>
     </div>
-    <div class="quick-buy-row">
-      <span class="price">${money(p.price)}</span>
-      <button class="add-btn" data-add="${p.id}">Add to cart ✨</button>
-    </div>`;
-  $("quickOverlay").hidden = false;
+    <div class="fl-price"><div class="p"><span class="strike">${money(f.price)}</span>$0</div></div>
+  </div>`;
 }
 
-/* ---------------- cart ops ---------------- */
+function openBooking() {
+  $("searchView").hidden = true;
+  $("bookView").hidden = false;
+  window.scrollTo({ top: 0 });
 
-const ADD_TOASTS = [
-  "Added! ✨ (still nothing)",
-  "In the cart. Feels good, right?",
-  "Great taste. Zero cost.",
-  "Cart +1 · bank account ±0",
-  "Ooh, that would've been expensive.",
-];
+  $("itinerary").innerHTML =
+    legCard("Departing flight", trip.outbound, trip.depDate) +
+    (trip.inbound ? legCard("Returning flight", trip.inbound, trip.retDate) : "");
 
-function addToCart(id) {
-  cart.set(id, (cart.get(id) || 0) + 1);
-  renderCart();
-  toast(ADD_TOASTS[Math.floor(Math.random() * ADD_TOASTS.length)]);
-  $("savingsPill").classList.remove("bump");
-  void $("savingsPill").offsetWidth;
-  $("savingsPill").classList.add("bump");
+  const pax = trip.pax;
+  const base = (trip.outbound.price + (trip.inbound ? trip.inbound.price : 0)) * pax;
+  const taxes = base * .13;
+  const seat = 14.99 * pax * (trip.inbound ? 2 : 1);
+  const total = base + taxes + seat;
+  booking = { total, miles: Math.round((trip.outbound.dist + (trip.inbound ? trip.inbound.dist : 0)) * .621371), durMins: trip.outbound.dur + (trip.inbound ? trip.inbound.dur : 0) };
+
+  $("fareBox").innerHTML = `
+    <div class="fare-row"><span>Flights × ${pax} passenger${pax > 1 ? "s" : ""} (${CABINS[trip.cabin][0]})</span><span>${money2(base)}</span></div>
+    <div class="fare-row"><span>Taxes, fees & airport charges</span><span>${money2(taxes)}</span></div>
+    <div class="fare-row"><span>Seat selection</span><span>${money2(seat)}</span></div>
+    <div class="fare-row discount"><span>Dopamine discount (you're not going)</span><span>−${money2(total)}</span></div>
+    <div class="fare-row total"><span>Total</span><span class="zero">$0.00</span></div>`;
 }
-
-function changeQty(id, delta) {
-  const q = (cart.get(id) || 0) + delta;
-  if (q <= 0) cart.delete(id); else cart.set(id, q);
-  renderCart();
-}
-
-/* ---------------- checkout & order ---------------- */
 
 const PROCESSING_MSGS = [
+  "Contacting the airline… it doesn't exist…",
   "Charging your card $0.00…",
-  "Contacting the warehouse… it's empty, as designed…",
-  "Reserving nothing just for you…",
-  "Applying dopamine discount (−100%)…",
-  "Waking up courier Kim… he's thrilled…",
+  "Reserving a seat nobody will sit in…",
+  "Printing a boarding pass for no one…",
+  "Notifying the pilot… she's on vacation, permanently…",
 ];
 
-function placeOrder() {
-  const items = [...cart.entries()].map(([id, qty]) => ({ p: PRODUCTS.find(p => p.id === id), qty }));
-  if (!items.length) return;
-  const total = items.reduce((s, it) => s + it.p.price * it.qty, 0);
-  const count = items.reduce((s, it) => s + it.qty, 0);
-  const name = $("fieldName").value.trim() || "mystery shopper";
-
-  $("checkoutForm").hidden = true;
+function book() {
+  $("bookBtn").disabled = true;
   $("processingBox").hidden = false;
-
   let mi = 0;
   $("processingMsg").textContent = PROCESSING_MSGS[0];
   const msgTimer = setInterval(() => {
@@ -277,53 +299,89 @@ function placeOrder() {
 
   setTimeout(() => {
     clearInterval(msgTimer);
-    lastOrder = {
-      no: "NM-" + Date.now().toString(36).toUpperCase().slice(-6),
-      total, count, name,
-    };
-    cart.clear();
-    renderCart();
-    closeOverlay("checkoutOverlay");
-    $("checkoutForm").hidden = false;
     $("processingBox").hidden = true;
+    $("bookBtn").disabled = false;
     confetti();
-    startTracking();
+    openPassView();
   }, 3400);
 }
 
-/* ---------------- delivery tracking ---------------- */
+/* ---------------- boarding pass & tracking ---------------- */
+
+function seatFor() {
+  const pref = $("paxSeat").value;
+  const letters = pref.startsWith("Window") ? "AF" : pref.startsWith("Aisle") ? "CD" : "BE";
+  return Math.floor(rnd(7, 42)) + letters[Math.floor(Math.random() * 2)];
+}
+
+function barcode() {
+  return `<div class="barcode" aria-hidden="true">${Array.from({ length: 46 },
+    () => `<div class="bar" style="width:${Math.random() < .5 ? 1 : Math.random() < .5 ? 2 : 4}px"></div>`).join("")}</div>`;
+}
+
+function bpass(f, date, name, seat) {
+  return `<div class="bpass">
+    <div class="bpass-top"><span>BOARDING PASS · ${esc(name).toUpperCase()}</span><span>${f.airline} ${f.no}</span></div>
+    <div class="bpass-body">
+      <div><div class="bpass-code">${f.from.code}</div><div class="bpass-city">${f.from.country} ${f.from.city}</div></div>
+      <div class="bpass-mid"><span class="bpass-plane">✈️</span>${fmtDur(f.dur)}<br>${fmtDate(date)}</div>
+      <div class="bpass-dest"><div class="bpass-code">${f.to.code}</div><div class="bpass-city">${f.to.country} ${f.to.city}</div></div>
+    </div>
+    <div class="bpass-details">
+      <div class="bpd"><span>Boards</span><b>${fmtTime(f.dep - 40)}</b></div>
+      <div class="bpd"><span>Gate</span><b>${pick("ABCD")}${Math.floor(rnd(1, 28))}</b></div>
+      <div class="bpd"><span>Seat</span><b>${seat}</b></div>
+      <div class="bpd"><span>Class</span><b>${CABINS[trip.cabin][0]}</b></div>
+      <div class="bpd"><span>Status</span><b>Never boarding</b></div>
+    </div>
+    ${barcode()}
+  </div>`;
+}
 
 const TRACK_STEPS = [
-  { at: 0,  icon: "🧾", title: "Order confirmed", sub: "NadaMart accepted your order of nothing." },
-  { at: 6,  icon: "📦", title: "Packing", sub: "Carefully wrapping 0 items in 0 bubble wrap." },
-  { at: 13, icon: "🛵", title: "Courier on the way", sub: "Kim grabbed the empty bag and is flying." },
-  { at: 26, icon: "📍", title: "Almost there", sub: "2 minutes away (spiritually)." },
-  { at: 38, icon: "📭", title: "Delivered", sub: "Ding dong. It's nothing. Enjoy." },
+  { at: 0,  icon: "🎫", title: "Checked in", sub: "Boarding group A. You've earned it by doing nothing." },
+  { at: 6,  icon: "🛂", title: "Security cleared instantly", sub: "You have no bags, no liquids and no body at the airport." },
+  { at: 13, icon: "🛫", title: "Departed*", sub: "*The aircraft is a concept. The pushback was emotional." },
+  { at: 22, icon: "🌍", title: "Cruising at 0 ft", sub: "Directly above your own sofa. Complimentary snack: whatever's in your kitchen." },
+  { at: 32, icon: "🛬", title: "Arrived", sub: "Exactly where you were. Local time: now. Welcome!" },
 ];
-const TRACK_TOTAL = 38;
+const TRACK_TOTAL = 32;
 
-function startTracking() {
-  $("shopView").hidden = true;
-  $("trackView").hidden = false;
-  $("deliveredBox").hidden = true;
+function routeMapSVG(f) {
+  return `<svg viewBox="0 0 640 190">
+    <path class="rm-path" d="M 60 150 Q 320 20 580 150"/>
+    <circle class="rm-dot" cx="60" cy="150" r="5"/>
+    <circle class="rm-dot" cx="580" cy="150" r="5"/>
+    <text class="rm-label" x="60" y="175" text-anchor="middle">${f.from.code}</text>
+    <text class="rm-sub" x="60" y="187" text-anchor="middle">${f.from.city}</text>
+    <text class="rm-label" x="580" y="175" text-anchor="middle">${f.to.code}</text>
+    <text class="rm-sub" x="580" y="187" text-anchor="middle">${f.to.city}</text>
+    <text class="rm-plane">✈️
+      <animateMotion dur="${TRACK_TOTAL}s" fill="freeze" path="M 60 150 Q 320 20 580 150" rotate="auto"/>
+    </text>
+  </svg>`;
+}
+
+function openPassView() {
+  const name = $("paxName").value.trim() || "Mystery Traveler";
+  $("bookView").hidden = true;
+  $("passView").hidden = false;
+  $("arrivedBox").hidden = true;
   $("skipBtn").hidden = false;
-  $("trackTitle").textContent = `${lastOrder.name}, your nothing is on the way`;
-  $("trackOrderNo").textContent = `Order ${lastOrder.no} · ${lastOrder.count} item${lastOrder.count > 1 ? "s" : ""} · ${money(lastOrder.total)} not charged`;
   window.scrollTo({ top: 0 });
+
+  $("passWrap").innerHTML =
+    bpass(trip.outbound, trip.depDate, name, seatFor()) +
+    (trip.inbound ? bpass(trip.inbound, trip.retDate, name, seatFor()) : "");
+
+  $("trackTitle").textContent = `${trip.from.city} → ${trip.to.city}, without leaving the couch`;
+  $("routeMap").innerHTML = routeMapSVG(trip.outbound);
 
   $("timeline").innerHTML = TRACK_STEPS.map((s, i) =>
     `<li class="tl-step" id="step${i}">
       <span class="tl-dot">${s.icon}</span>
       <span><span class="tl-title">${s.title}</span><br><span class="tl-sub">${s.sub}</span></span>
     </li>`).join("");
-
-  const courier = $("courier");
-  courier.style.transition = "none";
-  courier.style.left = "0%";
-  courier.classList.add("zoom");
-  void courier.offsetWidth;
-  courier.style.transition = `left ${TRACK_TOTAL}s linear`;
-  courier.style.left = "94%";
 
   trackTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
   trackTimers = [];
@@ -342,78 +400,89 @@ function startTracking() {
         el.classList.toggle("done", j <= i);
         el.classList.toggle("now", j === i && i < TRACK_STEPS.length - 1);
       });
-      if (i === TRACK_STEPS.length - 1) finishDelivery();
+      if (i === TRACK_STEPS.length - 1) finishTrip();
     }, s.at * 1000));
   });
 }
 
-function finishDelivery() {
+function finishTrip() {
   trackTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
   trackTimers = [];
-  $("courier").classList.remove("zoom");
   $("etaTime").textContent = "00:00";
   document.querySelectorAll(".tl-step").forEach(el => { el.classList.add("done"); el.classList.remove("now"); });
 
-  stats.saved += lastOrder.total;
-  stats.orders += 1;
-  stats.items += lastOrder.count;
+  stats.saved += Math.round(booking.total);
+  stats.trips += 1;
+  stats.miles += booking.miles;
   saveStats();
   renderStats();
+  $("savingsPill").classList.remove("bump");
+  void $("savingsPill").offsetWidth;
+  $("savingsPill").classList.add("bump");
 
   $("skipBtn").hidden = true;
-  $("deliveredAmount").textContent = money(lastOrder.total);
-  $("deliveredLifetime").textContent = money(stats.saved);
-  $("deliveredBox").hidden = false;
+  $("arrivedAmount").textContent = money(booking.total);
+  $("arrivedFine").textContent =
+    `You skipped ${fmtDur(booking.durMins)} of economy legroom, ${booking.miles.toLocaleString("en-US")} miles and 0 kg of CO₂.`;
+  $("arrivedLifetime").textContent =
+    `Lifetime: ${money(stats.saved)} saved · ${stats.trips} trip${stats.trips > 1 ? "s" : ""} not taken · ${stats.miles.toLocaleString("en-US")} miles not flown`;
+  $("arrivedBox").hidden = false;
   confetti();
 }
 
-function backToShop() {
+function backToSearch() {
   trackTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
   trackTimers = [];
-  $("trackView").hidden = true;
-  $("shopView").hidden = false;
+  $("passView").hidden = true;
+  $("bookView").hidden = true;
+  $("searchView").hidden = false;
   window.scrollTo({ top: 0 });
 }
 
-/* ---------------- overlays ---------------- */
-
-function closeOverlay(id) { $(id).hidden = true; }
-
-/* ---------------- events ---------------- */
+/* ---------------- events & init ---------------- */
 
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-add],[data-quick],[data-inc],[data-dec],[data-close],[data-cat]");
+  const t = e.target.closest("[data-select],[data-sort]");
   if (!t) return;
-  if (t.dataset.add) { addToCart(t.dataset.add); closeOverlay("quickOverlay"); }
-  else if (t.dataset.quick) openQuick(t.dataset.quick);
-  else if (t.dataset.inc) changeQty(t.dataset.inc, 1);
-  else if (t.dataset.dec) changeQty(t.dataset.dec, -1);
-  else if (t.dataset.close) closeOverlay(t.dataset.close);
-  else if (t.dataset.cat) { activeCat = t.dataset.cat; renderFilters(); renderGrid(); }
+  if (t.dataset.select !== undefined) selectFlight(t.dataset.select);
+  else if (t.dataset.sort) {
+    trip.sort = t.dataset.sort;
+    document.querySelectorAll("[data-sort]").forEach(c => c.classList.toggle("active", c === t));
+    renderFlights();
+  }
 });
 
-document.querySelectorAll(".overlay").forEach(ov =>
-  ov.addEventListener("click", e => { if (e.target === ov) ov.hidden = true; }));
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") document.querySelectorAll(".overlay").forEach(ov => { ov.hidden = true; });
+$("searchBtn").addEventListener("click", () => {
+  trip.type = $("selTrip").value;
+  trip.pax = Number($("selPax").value);
+  trip.cabin = $("selCabin").value;
+  search();
 });
-
-$("cartBtn").addEventListener("click", () => { renderCart(); $("cartOverlay").hidden = false; });
-$("checkoutBtn").addEventListener("click", () => {
-  if (!cart.size) return;
-  closeOverlay("cartOverlay");
-  renderCheckoutSummary();
-  $("checkoutOverlay").hidden = false;
+$("selTrip").addEventListener("change", () => { $("retBox").style.visibility = $("selTrip").value === "round" ? "visible" : "hidden"; });
+$("swapBtn").addEventListener("click", () => {
+  const a = $("fromInput").value;
+  $("fromInput").value = $("toInput").value;
+  $("toInput").value = a;
 });
-$("placeOrderBtn").addEventListener("click", placeOrder);
-$("skipBtn").addEventListener("click", finishDelivery);
-$("shopAgainBtn").addEventListener("click", backToShop);
-$("logoLink").addEventListener("click", e => { e.preventDefault(); backToShop(); });
+$("backToResults").addEventListener("click", () => {
+  $("bookView").hidden = true;
+  $("searchView").hidden = false;
+  $("resultsArea").scrollIntoView();
+});
+$("bookBtn").addEventListener("click", book);
+$("skipBtn").addEventListener("click", finishTrip);
+$("flyAgainBtn").addEventListener("click", backToSearch);
+$("logoLink").addEventListener("click", e => { e.preventDefault(); backToSearch(); });
 
-/* ---------------- init ---------------- */
-
-renderStats();
-renderFilters();
-renderGrid();
-renderCart();
+function init() {
+  $("airportList").innerHTML = AIRPORTS.map(a => `<option value="${a.city} (${a.code})">${a.country} ${a.code}</option>`).join("");
+  const d = new Date(); d.setDate(d.getDate() + 30);
+  const r = new Date(); r.setDate(r.getDate() + 37);
+  const iso = x => x.toISOString().slice(0, 10);
+  $("depDate").value = iso(d);
+  $("retDate").value = iso(r);
+  $("fromInput").value = "São Paulo (GRU)";
+  $("toInput").value = "Seoul (ICN)";
+  renderStats();
+}
+init();

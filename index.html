@@ -3,179 +3,179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NadaMart — Buy Nothing. Feel Everything.</title>
-<meta name="description" content="A Korean-style dopamine shopping site. Browse, add to cart, check out and track your delivery — nothing arrives, no money changes hands, and that's the point.">
+<title>Nada Flights — Search flights. Book nothing. Go nowhere.</title>
+<meta name="description" content="A Google-Flights-style dopamine site. Search real-looking flights, book them for $0.00, get a boarding pass and track a plane that never takes off.">
 <link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
 </head>
 <body>
 
 <div class="honesty-strip" role="note">
-  100% fake store · $0.00 will ever be charged · nothing will ever arrive — that's the point ✨
+  100% fake airline · every fare ends at $0.00 · no plane will ever board — that's the point ✈️
 </div>
 
 <header class="topbar">
   <div class="topbar-inner">
     <a class="logo" href="#" id="logoLink">
-      <span class="logo-mark">🛍️</span>
-      <span class="logo-text">Nada<em>Mart</em></span>
+      <span class="logo-mark">✈️</span>
+      <span class="logo-text"><b class="l1">N</b><b class="l2">a</b><b class="l3">d</b><b class="l4">a</b> Flights</span>
     </a>
     <div class="topbar-stats">
-      <div class="savings-pill" id="savingsPill" title="Money you didn't spend by buying nothing">
+      <div class="savings-pill" id="savingsPill" title="Money you didn't spend on trips you didn't take">
         💸 saved <strong id="savingsTotal">$0</strong>
       </div>
-      <button class="cart-btn" id="cartBtn" aria-label="Open cart">
-        🛒 <span class="cart-count" id="cartCount" hidden>0</span>
-      </button>
     </div>
   </div>
 </header>
 
 <main id="main">
 
-  <!-- ============ SHOP VIEW ============ -->
-  <section id="shopView">
+  <!-- ============ SEARCH VIEW ============ -->
+  <section id="searchView">
     <div class="hero">
-      <div class="hero-inner">
-        <h1>Everything you want.<br><span class="hero-nothing">Nothing</span> you get.</h1>
-        <p class="hero-sub">The full shopping ritual — browsing, deals, checkout, courier tracking —
-        with zero spending and zero clutter. Inspired by Korea's <em>dopamine sites</em>.</p>
-        <div class="hero-badges">
-          <span class="badge">🚚 FREE non-delivery</span>
-          <span class="badge">⚡ MEGA SALE −100% at checkout</span>
-          <span class="badge">🧘 0 buyer's remorse</span>
-        </div>
-      </div>
+      <h1>Flights to <span class="hero-nowhere">nowhere</span></h1>
+      <p class="hero-sub">Search flights. Pick a fare. Check in. Board nothing. It's the booking that feels good — the trip was always optional.</p>
     </div>
 
-    <div class="stats-strip" id="statsStrip">
-      <div class="stat"><strong id="statOrders">0</strong><span>orders of nothing</span></div>
-      <div class="stat"><strong id="statItems">0</strong><span>items not received</span></div>
+    <div class="search-card" role="search">
+      <div class="search-selects">
+        <select id="selTrip" aria-label="Trip type">
+          <option value="round">⇆ Round trip</option>
+          <option value="oneway">→ One way</option>
+        </select>
+        <select id="selPax" aria-label="Passengers">
+          <option value="1">👤 1 passenger</option>
+          <option value="2">👥 2 passengers</option>
+          <option value="3">👥 3 passengers</option>
+          <option value="4">👥 4 passengers</option>
+        </select>
+        <select id="selCabin" aria-label="Cabin class">
+          <option value="eco">Economy</option>
+          <option value="prem">Premium economy</option>
+          <option value="biz">Business</option>
+          <option value="first">First</option>
+        </select>
+      </div>
+      <div class="search-fields">
+        <div class="field-box from">
+          <label for="fromInput">From</label>
+          <input id="fromInput" list="airportList" placeholder="City or airport" autocomplete="off">
+        </div>
+        <button class="swap-btn" id="swapBtn" aria-label="Swap origin and destination">⇆</button>
+        <div class="field-box to">
+          <label for="toInput">To</label>
+          <input id="toInput" list="airportList" placeholder="Anywhere (you're not going)" autocomplete="off">
+        </div>
+        <div class="field-box date">
+          <label for="depDate">Departure</label>
+          <input id="depDate" type="date">
+        </div>
+        <div class="field-box date" id="retBox">
+          <label for="retDate">Return</label>
+          <input id="retDate" type="date">
+        </div>
+      </div>
+      <datalist id="airportList"></datalist>
+      <button class="search-btn" id="searchBtn">🔍 Search</button>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat"><strong id="statTrips">0</strong><span>trips not taken</span></div>
+      <div class="stat"><strong id="statMiles">0</strong><span>miles not flown</span></div>
       <div class="stat"><strong id="statSaved">$0</strong><span>kept in your pocket</span></div>
     </div>
 
-    <div class="shop-toolbar">
-      <h2>Today's temptations</h2>
-      <div class="filters" id="filters" role="tablist" aria-label="Product categories"></div>
-    </div>
+    <div id="resultsArea" hidden>
+      <div class="insight" id="insightBox">
+        <div class="insight-text">
+          <strong id="insightTitle">Prices are currently low ▼</strong>
+          <span id="insightSub">Similar trips usually cost $840–$1,240. You, of course, will pay $0.</span>
+        </div>
+        <div class="insight-chart" id="insightChart" aria-hidden="true"></div>
+      </div>
 
-    <div class="grid" id="productGrid"></div>
+      <div class="results-head">
+        <h2 id="resultsTitle">Best departing flights</h2>
+        <div class="sort-chips" id="sortChips">
+          <button class="chip active" data-sort="best">Best</button>
+          <button class="chip" data-sort="cheap">Cheapest</button>
+          <button class="chip" data-sort="fast">Fastest</button>
+        </div>
+      </div>
+
+      <div class="flight-list" id="flightList"></div>
+      <p class="results-note">Ranked by our proprietary algorithm (a coin). Every option arrives at the same place: where you already are.</p>
+    </div>
   </section>
 
-  <!-- ============ TRACKING VIEW ============ -->
-  <section id="trackView" hidden>
+  <!-- ============ BOOKING VIEW ============ -->
+  <section id="bookView" hidden>
+    <button class="back-link" id="backToResults">← Back to results</button>
+    <h2>Review your trip to nowhere</h2>
+    <div id="itinerary"></div>
+
+    <div class="panel">
+      <h3>Passenger</h3>
+      <div class="pass-fields">
+        <label class="pfield"><span>Full name</span><input type="text" id="paxName" placeholder="As it appears on no document" autocomplete="off"></label>
+        <label class="pfield"><span>Seat preference</span>
+          <select id="paxSeat">
+            <option>Window — for the views you won't see</option>
+            <option>Aisle — for the legroom you won't need</option>
+            <option>Middle — you monster</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Fare summary</h3>
+      <div class="fare" id="fareBox"></div>
+    </div>
+
+    <button class="book-btn" id="bookBtn">Book — pay $0.00 ✨</button>
+    <p class="tiny-print">By booking you agree to go precisely nowhere, on time, every time.</p>
+
+    <div id="processingBox" hidden>
+      <div class="spinner"></div>
+      <p class="processing-msg" id="processingMsg">Contacting the airline… it doesn't exist…</p>
+    </div>
+  </section>
+
+  <!-- ============ BOARDING PASS / TRACKING VIEW ============ -->
+  <section id="passView" hidden>
+    <div class="pass-wrap" id="passWrap"></div>
+
     <div class="track-card">
       <div class="track-head">
-        <div>
-          <h2 id="trackTitle">Your nothing is on the way</h2>
-          <p class="track-order" id="trackOrderNo"></p>
-        </div>
-        <div class="eta" id="etaBox">
-          <span class="eta-label">arriving in</span>
-          <span class="eta-time" id="etaTime">00:42</span>
-        </div>
+        <h2 id="trackTitle">Your flight to nowhere</h2>
+        <div class="eta"><span class="eta-label">departs in</span><span class="eta-time" id="etaTime">00:32</span></div>
       </div>
-
-      <div class="street" aria-hidden="true">
-        <div class="street-scenery">🏪&nbsp;&nbsp;🌳&nbsp;&nbsp;🏢&nbsp;&nbsp;🚏&nbsp;&nbsp;🌳&nbsp;&nbsp;🏥&nbsp;&nbsp;🏫&nbsp;&nbsp;🌳&nbsp;&nbsp;🏠</div>
-        <div class="street-road">
-          <div class="courier" id="courier">🛵</div>
-        </div>
-        <div class="street-labels"><span>NadaMart HQ</span><span>Your door</span></div>
-      </div>
-
+      <div class="route-map" id="routeMap" aria-hidden="true"></div>
       <ol class="timeline" id="timeline"></ol>
+      <div class="track-actions"><button class="chip" id="skipBtn">Skip to the nothing →</button></div>
 
-      <div class="track-actions">
-        <button class="btn ghost" id="skipBtn">Skip to the nothing →</button>
-      </div>
-
-      <div class="delivered" id="deliveredBox" hidden>
-        <div class="delivered-emoji">📭</div>
-        <h3>Delivered!*</h3>
-        <p class="delivered-fine">*Open your door. There's nothing there. Exactly as promised.</p>
-        <div class="delivered-savings">
+      <div class="arrived" id="arrivedBox" hidden>
+        <div class="arrived-emoji">🧳</div>
+        <h3>Trip complete. You went nowhere.</h3>
+        <p class="arrived-fine" id="arrivedFine"></p>
+        <div class="arrived-savings">
           <span>You just saved</span>
-          <strong id="deliveredAmount">$0</strong>
-          <span>lifetime total: <strong id="deliveredLifetime">$0</strong></span>
+          <strong id="arrivedAmount">$0</strong>
+          <span id="arrivedLifetime"></span>
         </div>
-        <button class="btn primary big" id="shopAgainBtn">Shop more nothing 🛍️</button>
+        <button class="search-btn" id="flyAgainBtn">Book another trip to nowhere ✈️</button>
       </div>
     </div>
   </section>
 </main>
 
 <footer class="footer">
-  <p><strong>NadaMart</strong> is a parody / self-help toy, modeled on South Korea's viral
-  “dopamine sites”. There is no store, no inventory, no payment processing and no delivery.
-  Your “savings” and order history live only in your browser's <code>localStorage</code>.</p>
+  <p><strong>Nada Flights</strong> is a parody / self-help toy in the spirit of South Korea's
+  viral “dopamine sites”, wearing a Google-Flights costume. There is no airline, no
+  inventory, no payment processing and no travel. Your “savings” live only in your
+  browser's <code>localStorage</code>. 0 kg CO₂ per passenger, guaranteed.</p>
 </footer>
-
-<!-- ============ QUICK VIEW MODAL ============ -->
-<div class="overlay" id="quickOverlay" hidden>
-  <div class="modal quick" role="dialog" aria-modal="true" aria-labelledby="quickName">
-    <button class="modal-x" data-close="quickOverlay" aria-label="Close">✕</button>
-    <div class="quick-body" id="quickBody"></div>
-  </div>
-</div>
-
-<!-- ============ CART DRAWER ============ -->
-<div class="overlay" id="cartOverlay" hidden>
-  <aside class="drawer" role="dialog" aria-modal="true" aria-label="Shopping cart">
-    <div class="drawer-head">
-      <h2>Your cart 🛒</h2>
-      <button class="modal-x" data-close="cartOverlay" aria-label="Close cart">✕</button>
-    </div>
-    <div class="drawer-items" id="cartItems"></div>
-    <div class="ship-progress" id="shipProgress">
-      <div class="ship-bar"><div class="ship-fill" id="shipFill"></div></div>
-      <p class="ship-note" id="shipNote"></p>
-    </div>
-    <div class="drawer-foot">
-      <div class="cart-total-row"><span>Total</span><strong id="cartTotal">$0.00</strong></div>
-      <div class="cart-total-row zing"><span>You pay</span><strong>$0.00 — always</strong></div>
-      <button class="btn primary big" id="checkoutBtn">Checkout ⚡</button>
-    </div>
-  </aside>
-</div>
-
-<!-- ============ CHECKOUT MODAL ============ -->
-<div class="overlay" id="checkoutOverlay" hidden>
-  <div class="modal checkout" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
-    <button class="modal-x" data-close="checkoutOverlay" aria-label="Close checkout">✕</button>
-
-    <div id="checkoutForm">
-      <h2 id="checkoutTitle">Checkout</h2>
-      <p class="checkout-sub">Go through the whole ritual. It's the ritual that feels good.</p>
-
-      <label class="field">
-        <span>Deliver nothing to</span>
-        <input type="text" id="fieldName" placeholder="Your name" autocomplete="off">
-      </label>
-      <label class="field">
-        <span>Address</span>
-        <input type="text" id="fieldAddress" placeholder="Anywhere. It genuinely doesn't matter." autocomplete="off">
-      </label>
-
-      <fieldset class="paymethods">
-        <legend>Payment method</legend>
-        <label class="pay"><input type="radio" name="pay" checked> 💳 NadaCard <small>•••• 0000 — declines nothing, charges nothing</small></label>
-        <label class="pay"><input type="radio" name="pay"> 🪙 VibeCoin <small>1 VIBE = 0 USD, always</small></label>
-        <label class="pay"><input type="radio" name="pay"> 💸 Cash on non-delivery <small>pay $0 when nothing arrives</small></label>
-      </fieldset>
-
-      <div class="summary" id="checkoutSummary"></div>
-
-      <button class="btn primary big pulse" id="placeOrderBtn">PLACE ORDER 🧨</button>
-      <p class="tiny-print">By placing this order you agree to receive nothing, promptly.</p>
-    </div>
-
-    <div id="processingBox" hidden>
-      <div class="spinner"></div>
-      <p class="processing-msg" id="processingMsg">Charging your card $0.00…</p>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
