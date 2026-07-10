@@ -29,14 +29,14 @@ const AIRPORTS = [
 ];
 
 const AIRLINES = [
-  ["Imaginair", "🪽", "IM"],
-  ["Vaporjet", "💨", "VJ"],
-  ["Daydream Airways", "🌙", "DD"],
-  ["Placebo Air", "💊", "PL"],
-  ["Ghost Air", "👻", "GH"],
-  ["Null Airlines", "⭕", "NL"],
-  ["Mirage Pacific", "🏝️", "MP"],
-  ["Nada Air", "✨", "NA"],
+  // name, IATA-style code (also the logo monogram), brand color
+  ["Aerolane", "AL", "#1a73e8"],
+  ["Skyria", "SY", "#e8710a"],
+  ["Pacifica Air", "PF", "#188038"],
+  ["Meridian Airways", "MD", "#9334e6"],
+  ["BlueOrbit", "BO", "#12b5cb"],
+  ["Atlantica", "AT", "#d93025"],
+  ["Nada Air", "NA", "#f9ab00"],
 ];
 
 const CABINS = { eco: ["Economy", 1], prem: ["Premium economy", 1.7], biz: ["Business", 3], first: ["First", 4.6] };
@@ -130,25 +130,36 @@ function parseAirport(v) {
 
 function makeFlights(fromA, toA) {
   const dist = km(fromA, toA);
+  const hubs = AIRPORTS.filter(a => a !== fromA && a !== toA);
   const flights = [];
   for (let i = 0; i < 9; i++) {
-    const [airline, logo, iata] = pick(AIRLINES);
+    const [airline, iata, color] = pick(AIRLINES);
     const stops = dist < 2500 ? (Math.random() < .7 ? 0 : 1) : Math.random() < .4 ? 0 : Math.random() < .8 ? 1 : 2;
-    const flightMins = dist / 840 * 60 + 40 + stops * rnd(70, 160);
+    const layMins = stops ? Math.round(stops * rnd(70, 160)) : 0;
+    const flightMins = dist / 840 * 60 + 40 + layMins;
+    const via = [];
+    while (via.length < stops) {
+      const h = pick(hubs).code;
+      if (!via.includes(h)) via.push(h);
+    }
     const dep = Math.round(rnd(5 * 60, 22.5 * 60) / 5) * 5;
     const price = (dist * rnd(.07, .12) + 60 + stops * -25 + rnd(0, 90)) * CABINS[trip.cabin][1];
     flights.push({
       id: i,
-      airline, logo,
+      airline, iata, color,
       no: iata + Math.floor(rnd(100, 999)),
       dep, arr: dep + flightMins, dur: flightMins,
-      stops, price: Math.max(49, Math.round(price)),
-      co2avg: Math.round(dist * .09 * CABINS[trip.cabin][1]),
+      stops, via, layMins, price: Math.max(49, Math.round(price)),
+      co2delta: Math.round(rnd(-22, 18)),
       from: fromA, to: toA, dist,
     });
+    const f = flights[flights.length - 1];
+    f.co2 = Math.round(dist * .115 * CABINS[trip.cabin][1] * (1 + f.co2delta / 100));
   }
   return flights;
 }
+
+const logoHTML = f => `<span class="fl-mono" style="background:${f.color}">${f.iata}</span>`;
 
 function sortFlights(list) {
   const s = trip.sort;
@@ -171,10 +182,9 @@ function renderInsight() {
   const list = trip.flights;
   const lo = Math.min(...list.map(f => f.price)), hi = Math.max(...list.map(f => f.price));
   $("insightSub").textContent =
-    `Similar trips usually cost ${money(lo)}–${money(hi)}. You, of course, will pay $0.`;
+    `${money(lo)}–${money(hi)} is typical for this route and dates.`;
   $("insightChart").innerHTML =
-    Array.from({ length: 11 }, () => `<div class="ibar" style="height:${Math.round(rnd(30, 100))}%"></div>`).join("") +
-    `<div class="ibar you" style="height:4%" title="your price"></div>`;
+    Array.from({ length: 12 }, () => `<div class="ibar" style="height:${Math.round(rnd(30, 100))}%"></div>`).join("");
 }
 
 function renderFlights() {
@@ -184,7 +194,7 @@ function renderFlights() {
     const plus1 = f.arr >= 24 * 60 ? " +1" : "";
     return `<div class="flight-row">
       <div class="fl-main">
-        <span class="fl-logo">${f.logo}</span>
+        ${logoHTML(f)}
         <div>
           <div class="fl-times">${fmtTime(f.dep)} – ${fmtTime(f.arr)}${plus1}</div>
           <div class="fl-airline">${f.airline} · ${f.no}</div>
@@ -195,11 +205,12 @@ function renderFlights() {
         <div class="fl-codes">${f.from.code}–${f.to.code}</div>
       </div>
       <div class="fl-stops">${f.stops === 0 ? "Nonstop" : f.stops + " stop" + (f.stops > 1 ? "s" : "")}
-        <small>${f.stops ? "somewhere imaginary" : "to nowhere, directly"}</small></div>
-      <div class="fl-co2">0 kg CO₂<small>avg ${f.co2avg} kg — you're not flying</small></div>
+        <small>${f.stops ? fmtDur(f.layMins) + " · " + f.via.join(", ") : "&nbsp;"}</small></div>
+      <div class="fl-co2 ${f.co2delta < 0 ? "good" : ""}">${f.co2} kg CO₂e
+        <small>${f.co2delta >= 0 ? "+" : ""}${f.co2delta}% emissions</small></div>
       <div class="fl-price">
-        <div class="p"><span class="strike">${money(f.price)}</span>$0</div>
-        <small>${isOut && trip.type === "round" ? "per leg, per person" : "per person"}</small>
+        <div class="p">${money(f.price)}</div>
+        <small>per person</small>
         <button class="select-btn" data-select="${f.id}">Select</button>
       </div>
     </div>`;
@@ -231,7 +242,7 @@ function selectFlight(id) {
       trip.phase = "ret";
       trip.flights = makeFlights(trip.to, trip.from);
       renderFlights();
-      toast("Departure locked in. Now the flight home — from the place you'll never be.");
+      toast("Departure selected — now choose your return flight.");
       $("resultsArea").scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
@@ -245,13 +256,13 @@ function selectFlight(id) {
 
 function legCard(kind, f, date) {
   return `<div class="leg-card">
-    <span class="fl-logo">${f.logo}</span>
+    ${logoHTML(f)}
     <div>
       <div class="leg-kind">${kind} · ${fmtDate(date)}</div>
       <div class="leg-route">${f.from.city} (${f.from.code}) → ${f.to.city} (${f.to.code})</div>
-      <div class="leg-meta">${f.airline} ${f.no} · ${fmtTime(f.dep)}–${fmtTime(f.arr)} · ${fmtDur(f.dur)} · ${f.stops ? f.stops + " stop(s)" : "Nonstop"}</div>
+      <div class="leg-meta">${f.airline} ${f.no} · ${fmtTime(f.dep)}–${fmtTime(f.arr)} · ${fmtDur(f.dur)} · ${f.stops ? f.stops + " stop via " + f.via.join(", ") : "Nonstop"}</div>
     </div>
-    <div class="fl-price"><div class="p"><span class="strike">${money(f.price)}</span>$0</div></div>
+    <div class="fl-price"><div class="p">${money(f.price)}</div></div>
   </div>`;
 }
 
@@ -280,11 +291,11 @@ function openBooking() {
 }
 
 const PROCESSING_MSGS = [
-  "Contacting the airline… it doesn't exist…",
+  "Confirming fare with the airline…",
+  "Issuing e-tickets…",
+  "Assigning your seat…",
+  "Applying dopamine discount (−100%)…",
   "Charging your card $0.00…",
-  "Reserving a seat nobody will sit in…",
-  "Printing a boarding pass for no one…",
-  "Notifying the pilot… she's on vacation, permanently…",
 ];
 
 function book() {
@@ -332,18 +343,18 @@ function bpass(f, date, name, seat) {
       <div class="bpd"><span>Gate</span><b>${pick("ABCD")}${Math.floor(rnd(1, 28))}</b></div>
       <div class="bpd"><span>Seat</span><b>${seat}</b></div>
       <div class="bpd"><span>Class</span><b>${CABINS[trip.cabin][0]}</b></div>
-      <div class="bpd"><span>Status</span><b>Never boarding</b></div>
+      <div class="bpd"><span>Status</span><b>Confirmed ✓</b></div>
     </div>
     ${barcode()}
   </div>`;
 }
 
 const TRACK_STEPS = [
-  { at: 0,  icon: "🎫", title: "Checked in", sub: "Boarding group A. You've earned it by doing nothing." },
-  { at: 6,  icon: "🛂", title: "Security cleared instantly", sub: "You have no bags, no liquids and no body at the airport." },
-  { at: 13, icon: "🛫", title: "Departed*", sub: "*The aircraft is a concept. The pushback was emotional." },
-  { at: 22, icon: "🌍", title: "Cruising at 0 ft", sub: "Directly above your own sofa. Complimentary snack: whatever's in your kitchen." },
-  { at: 32, icon: "🛬", title: "Arrived", sub: "Exactly where you were. Local time: now. Welcome!" },
+  { at: 0,  icon: "🎫", title: "Checked in", sub: "Boarding pass issued · Group A." },
+  { at: 6,  icon: "🛄", title: "Boarding", sub: "Gate closes 15 minutes before departure." },
+  { at: 13, icon: "🛫", title: "Departed", sub: "Wheels up, climbing to cruise altitude." },
+  { at: 22, icon: "✈️", title: "In flight", sub: "Cruising at 38,000 ft. Cabin service has started." },
+  { at: 32, icon: "🛬", title: "Arrived", sub: "Welcome to {city} — and also, still, your living room." },
 ];
 const TRACK_TOTAL = 32;
 
@@ -374,13 +385,13 @@ function openPassView() {
     bpass(trip.outbound, trip.depDate, name, seatFor()) +
     (trip.inbound ? bpass(trip.inbound, trip.retDate, name, seatFor()) : "");
 
-  $("trackTitle").textContent = `${trip.from.city} → ${trip.to.city}, without leaving the couch`;
+  $("trackTitle").textContent = `${trip.from.city} → ${trip.to.city} · ${trip.outbound.airline} ${trip.outbound.no}`;
   $("routeMap").innerHTML = routeMapSVG(trip.outbound);
 
   $("timeline").innerHTML = TRACK_STEPS.map((s, i) =>
     `<li class="tl-step" id="step${i}">
       <span class="tl-dot">${s.icon}</span>
-      <span><span class="tl-title">${s.title}</span><br><span class="tl-sub">${s.sub}</span></span>
+      <span><span class="tl-title">${s.title}</span><br><span class="tl-sub">${s.sub.replace("{city}", trip.to.city)}</span></span>
     </li>`).join("");
 
   trackTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
