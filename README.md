@@ -57,6 +57,11 @@ discipline tooling gated to the right phase.
   concrete options.
 - **Skills** — pick skill tracks (data, storytelling, product/strategy, modern finance,
   AI literacy…), set weekly hour targets, log sessions.
+- **Courses** — two self-paced courses, fifteen lessons each, taught in the voices of
+  the Council: *Humans* (reading, influencing, and working with people) and *Finance
+  Business Partnering* (from producer of numbers to shaper of decisions — the natural
+  adjacent move). Every lesson is one idea plus one same-day practice, with per-lesson
+  progress tracking.
 - **Launch** — the transition toolkit: rehearse your break story, build STAR interview
   stories from the evidence bank, and track applications with a sustainable-pace rule
   (two focused hours a day, then close the laptop).

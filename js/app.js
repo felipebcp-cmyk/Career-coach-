@@ -17,6 +17,7 @@ function defaultState() {
     journal: {},                   // journeyId -> {idx: answer}
     options: [],                   // {id, name, notes, scores: {critId: 1-10}}
     skills: [],                    // {id, name, hoursTarget, logs: [{date, mins}]}
+    courses: {},                   // courseId -> {lessonId: true}
     weekly: {},                    // weekKey -> {focus, top3: ["",...], done:[bool], retro: {...}}
     identity: "",
     stories: [],                   // {id, title, situation, task, action, result}
@@ -42,7 +43,7 @@ function load() {
 /* Coerce any stored/imported blob into a shape the views can't crash on. */
 function normalize(data) {
   const out = Object.assign(defaultState(), data);
-  ["checkins", "journal", "weekly", "lastFired"].forEach(k => {
+  ["checkins", "journal", "weekly", "lastFired", "courses"].forEach(k => {
     if (typeof out[k] !== "object" || out[k] === null || Array.isArray(out[k])) out[k] = {};
   });
   ["habits", "wins", "evidence", "reframes", "options", "skills", "stories", "apps"].forEach(k => {
@@ -144,7 +145,8 @@ function coachNote(personaId, text) {
 /* ---------------- router ---------------- */
 const VIEWS = { today: viewToday, program: viewProgram, reflect: viewReflect,
   confidence: viewConfidence, compass: viewCompass, skills: viewSkills,
-  launch: viewLaunch, council: viewCouncil, retro: viewRetro, reminders: viewReminders };
+  courses: viewCourses, launch: viewLaunch, council: viewCouncil,
+  retro: viewRetro, reminders: viewReminders };
 
 function navigate(view) {
   if (!VIEWS[view]) view = "today";
@@ -874,6 +876,91 @@ function viewSkills(root) {
     state.skills.push({ id: uid(), name, hoursTarget: 3, logs: [] });
     save(); render(); toast("Bet placed — 3h/week to start; adjust the target on the card.");
   }
+}
+
+/* ================= COURSES ================= */
+// survives re-renders so ticking a lesson doesn't collapse it; deliberately
+// not persisted — a fresh visit starts with everything folded
+const openLessons = new Set();
+
+function courseLessons(course) {
+  return course.modules.reduce((s, m) => s + m.lessons.length, 0);
+}
+function courseDoneCount(course) {
+  const done = state.courses[course.id] || {};
+  return course.modules.reduce((s, m) => s + m.lessons.filter(l => done[l.id]).length, 0);
+}
+
+function viewCourses(root) {
+  const sub = (location.hash.split("/") || [])[1];
+  const course = COURSES.find(c => c.id === sub);
+  if (course) return viewCourse(root, course);
+
+  root.append(
+    el("h1", { class: "section-title" }, "Courses"),
+    el("p", { class: "section-sub" }, "Short self-paced courses: one idea and one same-day practice per lesson. A lesson only counts when you've done the practice — reading is not the rep.")
+  );
+  root.append(coachNote("priya", "One lesson a day beats a binge. Do the practice the same day — knowledge that never collides with real life evaporates by Friday."));
+
+  const grid = el("div", { class: "grid two mt" });
+  COURSES.forEach(c => {
+    const total = courseLessons(c), done = courseDoneCount(c);
+    const pct = Math.round(done / total * 100);
+    grid.append(el("div", { class: "card journey-card", onclick: () => { location.hash = `courses/${c.id}`; } },
+      el("h2", {}, `${c.icon} ${c.title}`),
+      el("p", { class: "sub" }, c.tagline),
+      el("div", { class: "skill-bar-track" }, el("div", { class: "skill-bar-fill", style: `width:${pct}%` })),
+      el("div", { class: "journey-progress" }, done ? `${done}/${total} lessons done` : "Not started →")
+    ));
+  });
+  root.append(grid);
+}
+
+function viewCourse(root, course) {
+  const done = state.courses[course.id] || (state.courses[course.id] = {});
+  const total = courseLessons(course), doneN = courseDoneCount(course);
+  root.append(
+    el("button", { class: "linklike", onclick: () => { location.hash = "courses"; } }, "← All courses"),
+    el("h1", { class: "section-title", style: "margin-top:10px" }, `${course.icon} ${course.title}`),
+    el("p", { class: "section-sub" }, course.intro)
+  );
+  root.append(coachNote(course.coach, course.coachNote));
+
+  const prog = el("div", { class: "card mt" },
+    el("div", { class: "row between" },
+      el("b", {}, doneN === total ? "🎓 Course complete" : "Your progress"),
+      el("span", { class: "skill-meta" }, `${doneN}/${total} lessons`)),
+    el("div", { class: "skill-bar-track" },
+      el("div", { class: "skill-bar-fill", style: `width:${Math.round(doneN / total * 100)}%` })));
+  root.append(prog);
+
+  course.modules.forEach((m, mi) => {
+    const teacher = COUNCIL.find(c => c.id === m.taughtBy);
+    const block = el("div", { class: "phase-block" + (m.lessons.some(l => !done[l.id]) && (mi === 0 || course.modules[mi - 1].lessons.every(l => done[l.id])) ? " current" : "") },
+      el("div", { class: "phase-tag" }, `Module ${mi + 1}`),
+      el("h3", {}, m.title),
+      el("p", { class: "sub" }, `Taught by ${teacher.name} · ${teacher.role}`));
+    m.lessons.forEach(l => {
+      const isDone = !!done[l.id];
+      const details = el("details", openLessons.has(l.id) ? { open: "" } : {},
+        el("summary", {}, el("span", { class: isDone ? "lesson-done" : "" }, l.title)),
+        el("p", { class: "idea" }, l.idea),
+        el("div", { class: "insight" }, "🛠 Try this: " + l.practice));
+      details.addEventListener("toggle", () => {
+        if (details.open) openLessons.add(l.id); else openLessons.delete(l.id);
+      });
+      block.append(el("div", { class: "lesson-row" },
+        el("button", { class: "habit-check" + (isDone ? " done" : ""),
+          "aria-label": `${l.title} — ${isDone ? "done, tap to undo" : "mark done"}`,
+          "aria-pressed": String(isDone), onclick: () => {
+          if (isDone) delete done[l.id]; else done[l.id] = true;
+          save(); render();
+          if (!isDone && courseDoneCount(course) === total) toast("🎓 Course complete. That knowledge is yours now.");
+        } }, "✓"),
+        details));
+    });
+    root.append(block);
+  });
 }
 
 /* ================= LAUNCH ================= */

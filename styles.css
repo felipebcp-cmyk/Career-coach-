@@ -232,6 +232,28 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .skill-meta { font-size: 13px; color: var(--ink-3); }
 .track-chip { display: inline-block; }
 
+/* ---------- courses ---------- */
+.lesson-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px;
+  margin: 8px 0; background: var(--surface);
+}
+.lesson-row details { flex: 1; min-width: 0; }
+.lesson-row summary {
+  cursor: pointer; font-size: 14.5px; font-weight: 600;
+  list-style: none; display: flex; align-items: center; gap: 8px;
+  padding: 3px 0;
+}
+.lesson-row summary::-webkit-details-marker { display: none; }
+.lesson-row summary::after {
+  content: "▸"; margin-left: auto; color: var(--ink-3);
+  transition: transform .15s;
+}
+.lesson-row details[open] summary::after { transform: rotate(90deg); }
+.lesson-row .lesson-done { color: var(--ink-3); }
+.lesson-row .idea { font-size: 14px; color: var(--ink-2); margin: 8px 0; }
+.lesson-row .insight { margin: 10px 0 4px; }
+
 /* ---------- council ---------- */
 .council-card { display: flex; gap: 14px; }
 .council-card .avatar { font-size: 38px; line-height: 1.1; }

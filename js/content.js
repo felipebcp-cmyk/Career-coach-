@@ -284,3 +284,143 @@ const PHASE_NOTES = {
     ["maya", "Watch your early-warning signs during the search. If the old chest-tightening comes back with a company, that's your answer about them."]
   ]
 };
+
+/* ---------- courses ---------- */
+const COURSES = [
+  {
+    id: "humans", icon: "🧭", title: "Humans",
+    tagline: "How people actually work — reading them, moving them, working with them.",
+    intro: "Finance trained you to read spreadsheets. Every next chapter — business partnering, product, leadership, or a saner seat in finance — is decided by how well you read people. Fifteen short lessons, each with one idea and one same-day practice. Do them in order; each module builds on the last.",
+    coach: "elena",
+    coachNote: "The skills in this course were the actual job all along — the models were just the entry ticket. I learned that too late; you get to learn it on purpose.",
+    modules: [
+      { title: "Start with the human you live in", taughtBy: "maya",
+        lessons: [
+          { id: "h-manual", title: "Your operating manual",
+            idea: "You can't read other people while you're illiterate about yourself. You have predictable patterns: hours when your judgment is sharp, situations that flood you, conditions that refill you. Burnout happened partly because nobody — including you — was reading your manual.",
+            practice: "Write your one-page user manual: when I'm at my best · what drains me fast · what refills me · how I behave when I'm overloaded · how to tell me hard things. Show it to one person who knows you and ask what you got wrong." },
+          { id: "h-feelings", title: "Feelings are data, not noise",
+            idea: "Finance culture treats emotion as unprofessional, so you learned to override the signal. But naming a feeling precisely — 'that's dread, not tiredness' — measurably reduces its grip and tells you what it's about. Emotions are fast pattern-recognition; ignoring them is throwing away data.",
+            practice: "Three times today, stop and name what you're feeling in one word — then add what it might be telling you. That's the whole exercise. Precision grows with reps." },
+          { id: "h-story", title: "The story you add",
+            idea: "Between what happened and what you felt sits a story you wrote without noticing. 'He didn't reply' is a fact; 'he thinks I'm irrelevant now' is authorship. Most interpersonal pain lives in the added story, and burnout brains write especially dark ones.",
+            practice: "Catch one story today. Write two columns: what a camera would have recorded, and what you added. Then write one alternative story that fits the same facts." }
+        ] },
+      { title: "Listening — the rarest skill", taughtBy: "priya",
+        lessons: [
+          { id: "h-listen", title: "Listen to understand, not to reply",
+            idea: "Most listening is waiting to talk while rehearsing your answer. Real listening means the other person's meaning — not your response — has your attention. People can feel the difference instantly, and they only tell the truth to the second kind of listener.",
+            practice: "In one conversation today, don't compose your reply while they speak. When they finish, summarize their point until they say 'yes, exactly' — only then respond." },
+          { id: "h-questions", title: "Questions that open people",
+            idea: "Closed questions collect confirmations; open questions collect information. 'What' and 'how' open people up; 'why' often puts them on trial ('why did you do that?') and triggers defense. The quality of what you learn is set by the shape of what you ask.",
+            practice: "Pick one conversation and ask only open questions for ten minutes — 'what was that like?', 'how did you decide?'. Notice how much arrives that you'd never have thought to ask for." },
+          { id: "h-pause", title: "The pause",
+            idea: "The most important thing in a conversation often shows up after the silence you didn't fill. People give the rehearsed answer first; the real one needs three seconds of room. Comfort with silence reads as confidence — discomfort with it reads as need.",
+            practice: "Today, after someone answers a question, count three silent seconds before responding. Write down what arrived in the space that wouldn't have otherwise." }
+        ] },
+      { title: "Reading people", taughtBy: "marcus",
+        lessons: [
+          { id: "h-interests", title: "Positions vs. interests",
+            idea: "What someone asks for is a position; why they want it is an interest — and one interest can be served by many positions. 'I need this by Friday' might mean 'I can't look unprepared in Monday's meeting.' Argue with positions and you get deadlock; work with interests and you get options.",
+            practice: "Take one request someone made of you recently. List three different interests that could sit underneath it. Which is most likely — and what else would satisfy it?" },
+          { id: "h-scarf", title: "The five social triggers",
+            idea: "Most 'irrational' behavior at work is a threat response to one of five things: status, certainty, autonomy, relatedness, or fairness. The colleague who exploded over a small process change wasn't crazy — a trigger got hit. Learn the five and office behavior becomes legible.",
+            practice: "Replay a meeting that turned tense in your old job. Which of the five was threatened, for whom? Now replay how it could've been said with the trigger protected." },
+          { id: "h-room", title: "Read the room",
+            idea: "Every meeting has two conversations: the agenda, and the current underneath — who defers to whom, who's checked out, what topic everyone is steering around. The people who seem politically gifted are mostly just watching the second conversation.",
+            practice: "In your next group setting, say less on purpose for five minutes and only observe: who talks most, whose comments change the direction, who gets interrupted, what is conspicuously not being said." }
+        ] },
+      { title: "Influence without authority", taughtBy: "marcus",
+        lessons: [
+          { id: "h-trust", title: "The trust equation",
+            idea: "Trust = (credibility + reliability + closeness) ÷ self-orientation. High-performers usually max the numerator and still aren't trusted, because the denominator — how much you seem to be in it for yourself — divides everything. Visible self-interest is the tax on every message you send.",
+            practice: "Pick one working relationship you want stronger. Score yourself 1–10 on all four terms, honestly. Choose the weakest and do one concrete thing this week to move it." },
+          { id: "h-currency", title: "Frame it in their currency",
+            idea: "People don't act on your reasons; they act on theirs. Influence starts with translating your ask into what the other person already wants — their goals, their pressures, their scoreboard. This isn't manipulation; it's the courtesy of doing the translation work yourself.",
+            practice: "Take an ask you need to make — an intro, feedback on your plan, a referral. Draft it twice: once in your interest language, once in theirs. Send the second." },
+          { id: "h-stories", title: "Stories move, data justifies",
+            idea: "Decisions are made emotionally and justified analytically — in that order. One concrete story about one specific customer outruns ten summary statistics, because a story is simulated experience and a statistic is homework. Your finance brain wants to lead with the number; lead with the story and let the number confirm it.",
+            practice: "Take one point you'd normally argue with data. Build a 60-second story that carries it — a person, a moment, a consequence. Tell it out loud once." }
+        ] },
+      { title: "The hard conversations", taughtBy: "elena",
+        lessons: [
+          { id: "h-no", title: "No, said kindly, early",
+            idea: "Every yes spends hours you don't get back, and your burnout was partly a boundary that failed a hundred small times. A clean no — warm, prompt, without a court filing of justifications — protects the relationship better than a resentful yes ever did. Over-explaining invites negotiation.",
+            practice: "Decline one thing this week with two sentences: 'I can't take that on right now. Thanks for thinking of me.' Sit with the discomfort; notice the world not ending." },
+          { id: "h-feedback", title: "Feedback that lands",
+            idea: "Feedback fails when it's a character verdict ('you're careless'). It lands as situation, behavior, impact: when X happened, you did Y, and the effect was Z. Verdicts get defended against; observations get considered — because only one of them is arguable.",
+            practice: "Write the SBI version of a piece of feedback you never gave at your old job. You don't have to send it — the rep is learning what it feels like to say it cleanly." },
+          { id: "h-disagree", title: "Disagree without the duel",
+            idea: "Disagreement goes wrong when it becomes about winning. It goes right when you name the shared goal first ('we both want this launch to work'), aim at the idea rather than the person, and get curious before you get loud — 'help me understand how this handles X' beats 'that won't work.'",
+            practice: "Rehearse out loud, once: disagreeing with someone senior using the sequence shared goal → genuine question → your concern. You'll need this exact muscle in every job you'll ever love." }
+        ] }
+    ] },
+  {
+    id: "fbp", icon: "🤝", title: "Finance Business Partnering",
+    tagline: "From producer of numbers to shaper of decisions.",
+    intro: "The most natural adjacent move for your background — finance work where the deliverable is a better decision, not a bigger deck. Fifteen lessons on the role, the business fluency, the insight craft, the relationships, and how to land the seat. Pairs with the Compass 'adjacent move' path and the Skills tab.",
+    coach: "marcus",
+    coachNote: "Business partnering is what banking looks like when the client is down the hall and the relationship lasts years, not deals. Your rigor is the entry ticket — this course is about the other half of the job.",
+    modules: [
+      { title: "The role, demystified", taughtBy: "marcus",
+        lessons: [
+          { id: "f-role", title: "What a business partner actually does",
+            idea: "Reporting explains what happened; partnering changes what happens next. A finance business partner sits inside a business unit as translator between the numbers and the decisions — challenging plans, shaping trade-offs, being the commercial conscience in the room. The test of the job: are you invited when the decision is being made, or only asked to explain it afterwards?",
+            practice: "Write one sentence for each: what a financial accountant, an FP&A analyst, and a business partner would each do with the same monthly result. If the three sentences sound the same, reread this lesson." },
+          { id: "f-edge", title: "Your banking edge — and what to unlearn",
+            idea: "You arrive with rare assets: modeling speed, comfort under pressure, and you've watched how capital judges companies from outside. What must be unlearned: the deck is not the deliverable (the relationship is), intensity is not the operating mode (this is a marathon), and being right is worth nothing if nobody in the room feels heard.",
+            practice: "Two columns: 'transfers' and 'unlearn'. Fill each with at least four items from your own last role — specific behaviors, not qualities. Keep it; it becomes interview material later." },
+          { id: "f-rhythm", title: "The rhythm of the job",
+            idea: "The role runs on a calendar: month-end close, rolling forecast, budget season, monthly business reviews. But the real work happens between the ceremonies — the corridor question that reshapes a plan before it's submitted, the early warning passed on before it's a surprise. The calendar is the skeleton; the relationships are the muscle.",
+            practice: "Sketch the annual rhythm of an FP&A/partnering team from memory, then check it against a real job posting for a finance business partner. Note what surprised you." }
+        ] },
+      { title: "Know the business cold", taughtBy: "sam",
+        lessons: [
+          { id: "f-model", title: "The business model on one page",
+            idea: "Partners earn their seat by understanding how the business actually makes money — who pays, for what, at what price, with what cost structure, and where the margin concentrates. Most people inside a company can't draw this. The one who can becomes the person others check their thinking with.",
+            practice: "Pick a company you know well and draw its money map on one page: customer segments, what they buy, pricing logic, biggest cost blocks, where profit concentrates. Ten boxes maximum." },
+          { id: "f-floor", title: "Walk the floor",
+            idea: "Credibility with operators is earned in their territory, not yours. Sit with sales calls, watch the warehouse, shadow support. Ask 'what makes your job hard?' and the floor will hand you insight no ledger contains — and, more valuable still, it will remember that you asked.",
+            practice: "Interview one person who works in a function you've never worked in — any company, any friend. One question: 'what makes your job harder than it should be?' Just listen and take notes." },
+          { id: "f-drivers", title: "KPI trees — link the P&L to levers",
+            idea: "A P&L line is an outcome; nobody can manage an outcome. A driver tree decomposes it into levers people actually pull: revenue = leads × conversion × average deal × retention. Speak in drivers and operators recognize their own steering wheel in your numbers — that's the moment finance stops being 'them'.",
+            practice: "Take one revenue line of any business you understand and decompose it into 4–6 operational drivers. For each driver: who in the org actually owns it?" }
+        ] },
+      { title: "From numbers to decisions", taughtBy: "sam",
+        lessons: [
+          { id: "f-sowhat", title: "So what, now what",
+            idea: "Every analysis must end with two sentences: what this means ('so what') and what we should do ('now what'). If either is missing, you've produced reporting and outsourced the thinking to your reader. The discipline feels presumptuous at first — recommending is exposure — but recommendation is precisely what the role is paid for.",
+            practice: "Find any chart — news article, old deck, anything. Write the three-sentence version: finding, so what, now what. Repeat daily until it's a reflex." },
+          { id: "f-datastory", title: "Storytelling with data",
+            idea: "Lead with the headline, not the buildup: the title of every exhibit should be the message ('EU margin is funding US growth'), not the topic ('EU margin analysis'). One message per chart. The 40-tab appendix instinct from banking is a comfort blanket — a partner's power move is the single page that ends the debate.",
+            practice: "Take any 10-slide argument (yours or found) and compress it to 3 slides with message titles. Notice what you cut — and that nobody would miss it." },
+          { id: "f-forecast", title: "Forecasts people trust",
+            idea: "A trusted forecast is drivers-based, states its assumptions out loud, and gives a range with honest confidence — not a single point defended to the death. Sandbagging buys one comfortable quarter and costs your credibility compounding forever after. You are the one person in the room paid to be unpopularly realistic.",
+            practice: "Forecast something small in your own life for next week — spending, applications sent, skill hours. Write the assumptions. Next Sunday, compare and write one line on why you missed." }
+        ] },
+      { title: "The partnering craft", taughtBy: "elena",
+        lessons: [
+          { id: "f-stakeholders", title: "Map your stakeholders",
+            idea: "Every business unit has a real org chart that isn't the drawn one: who decides, who influences the decider, who can quietly block. Partners map this deliberately and invest ahead of need — the relationship you'll depend on in budget season is built in the quiet months before it.",
+            practice: "Draw a 2×2 — influence vs. current attitude toward you — for any group you've worked with. Who's high-influence and lukewarm? That quadrant is always where the work is." },
+          { id: "f-friend", title: "Critical friend, not police",
+            idea: "The job holds a tension: challenge the business AND stay on its side. Tip into cop and you'll get compliance, polished surfaces, and the truth hidden from you until it explodes. The critical friend hears bad news early because saying 'this worries me — let's fix it before it goes up the chain' proved safe last time.",
+            practice: "Script four sentences challenging a weak business case without damaging the relationship: name the shared goal, name the concern with numbers, ask a genuine question, offer to work it together." },
+          { id: "f-badnews", title: "Bad news, early and straight",
+            idea: "Anyone can present a beat; reputations are made in the miss quarters. The formula is fact, driver, plan — 'we'll miss Q3 by 8%; two enterprise deals slipped; here are three actions and what I need from you' — delivered early, without spin. Surprise, not bad news, is what destroys trust.",
+            practice: "Rehearse a miss out loud in three sentences: fact, driver, plan. Time it — under 30 seconds. This rehearsal is the difference between composure and flailing when it's real." }
+        ] },
+      { title: "Getting the seat", taughtBy: "marcus",
+        lessons: [
+          { id: "f-position", title: "Position the story",
+            idea: "Banking-to-partnering is a strength narrative when you frame it as choice: 'I've spent years judging companies from the outside; I want to build value inside one, closer to the decisions.' Paired with your rehearsed break story, it reads as direction, not retreat. Never apologize for the pivot — you're bringing the outside view in.",
+            practice: "Write your two-sentence positioning and say it with your break story, out loud, until the seam between them disappears. Save both in Launch." },
+          { id: "f-tools", title: "Close the tool gap",
+            idea: "Your Excel is elite; the gaps are usually SQL (pull your own data), one BI tool (Power BI or Tableau), and familiarity with a planning platform (Anaplan, Adaptive, Pigment). Six focused weeks closes enough of the gap to be credible — the judgment they can't teach, you already have.",
+            practice: "Add 'Data & analytics' as a bet in the Skills tab with a weekly hour target. First milestone: one small analysis on real data, done end-to-end in SQL + a BI tool." },
+          { id: "f-interview", title: "The interview reps",
+            idea: "Expect a case: 'margin dropped 300bps — walk me through how you'd investigate.' The winning shape is a driver tree out loud, questions before answers, then one clear recommendation with a stated assumption. They're not testing the math — they're testing whether you think in levers and commit to a view.",
+            practice: "Build two STAR stories in Launch where your analysis changed a decision — the exact evidence this role interviews for. Then practice the margin case above, out loud, in under four minutes." }
+        ] }
+    ] }
+];
